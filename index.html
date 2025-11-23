@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>進貨通知 (預購置底版)</title>
+    <title>進貨通知系統</title>
     <style>
         /* --- 基礎設定 --- */
         :root {
@@ -220,7 +220,7 @@
 
         <div class="btn-group">
             <button class="btn-big btn-clear" onclick="clearAll()">❌ 清除</button>
-            <button class="btn-big btn-copy" onclick="copyMsg()">📋 複製 LINE</button>
+            <button class="btn-big btn-copy" onclick="copyMsg()">📋 複製訊息</button>
         </div>
     </div>
 
@@ -234,7 +234,7 @@
                 1. <b>確認日期</b>：系統預設為「明天」。<br>
                 (※ 若明天是週日，系統會自動跳成下週一)<br>
                 2. <b>選擇廠商</b>：點擊上方按鈕，變藍色代表已選取。<br>
-                3. <b>複製訊息</b>：確認文字無誤後，按藍色「📋 複製 LINE」。<br>
+                3. <b>複製訊息</b>：確認文字無誤後，按藍色「📋 複製訊息」。<br>
                 4. <b>傳送</b>：到 LINE 群組貼上即可。
             </div>
         </details>
@@ -274,8 +274,8 @@
         "中原", 
         "預購-云品", 
         "預購-21世紀",
-        "預購-速達",  // 新增
-        "預購-臻美"   // 新增
+        "預購-速達",
+        "預購-臻美"
     ];
     
     let customVendors = [];
@@ -376,7 +376,7 @@
         customVendors.push(name);
         saveToStorage();
         elInput.value = '';
-        render(); // 這裡會自動重新排序
+        render(); 
         showToast(`已新增：${name}`);
     }
 
