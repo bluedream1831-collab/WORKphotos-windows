@@ -2,430 +2,406 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>進貨通知系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>物流作業紀錄 (新增五股鶯歌)</title>
     <style>
-        /* --- 基礎設定 --- */
-        :root {
-            --primary: #007bff;   /* 藍色 */
-            --success: #28a745;   /* 綠色 */
-            --danger: #dc3545;    /* 紅色 */
-            --bg: #f4f4f9;
-            --card: #ffffff;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 15px;
+        /* 基礎設定 */
+        body { 
+            font-family: "微軟正黑體", sans-serif; 
+            background: #FFFFFF; 
+            color: #333; 
+            margin: 0; 
+            padding: 5px;
+            height: 100vh;
             display: flex;
-            justify-content: center;
-            color: #333;
-        }
-
-        .container {
-            background-color: var(--card);
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        h2 {
-            text-align: center;
-            margin: 0 0 20px 0;
-            font-size: 1.4rem;
-            color: #444;
-        }
-
-        .section {
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-        }
-
-        /* --- 日期選擇 --- */
-        input[type="date"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-            background: #fff;
+            flex-direction: column;
             box-sizing: border-box;
         }
 
-        /* --- 廠商列表區 --- */
-        .vendor-list {
+        /* 控制區塊 (Grid 2x2) */
+        .controls-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: 1fr 1fr; 
+            gap: 6px; 
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        /* 標題小字 */
+        .grid-item span.label-text {
+            display: block;
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 3px;
+            font-weight: bold;
+            white-space: normal; 
+            line-height: 1.2;
+        }
+
+        /* 下拉選單 & 輸入框通用樣式 */
+        select, input {
+            width: 100%;
+            padding: 8px 5px;
+            font-size: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: #fff;
+            color: #333;
+            box-sizing: border-box;
+            height: 40px;
+        }
+
+        /* 項目輸入框特別樣式 */
+        #action-input {
+            background-color: #fff;
+            border: 1px solid #007bff; 
+        }
+
+        /* 板/箱 輸入框 */
+        .input-group {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .unit-input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .unit-input-wrapper input {
+            text-align: center; 
+            padding: 5px 25px 5px 8px;
+        }
+
+        .unit-input-wrapper .unit {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        /* 相機區塊 */
+        #camera-wrapper {
+            flex-grow: 1;
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #000;
+            overflow: hidden;
+            border-radius: 4px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 拍照按鈕 */
+        #snap-btn {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px;
+            font-size: 16px;
+            margin: 8px auto 0 auto;
+            cursor: pointer;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* 結果顯示區 */
+        #result-area {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.98);
+            z-index: 999;
+            overflow-y: auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #result-image {
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        #reset-btn {
+            padding: 10px 30px;
+            font-size: 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
             margin-bottom: 15px;
         }
 
-        .vendor-item input { display: none; }
-
-        .vendor-item label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background-color: #f0f2f5;
-            padding: 10px 5px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            text-align: center;
-            min-height: 40px;
-            border: 2px solid transparent;
-            transition: 0.2s;
-            position: relative;
-            user-select: none;
-            word-break: break-word;
-        }
-
-        .vendor-item input:checked + label {
-            background-color: #e7f1ff;
-            border-color: var(--primary);
-            color: var(--primary);
+        .ios-alert {
+            background: #ffc107;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: bold;
-        }
-
-        .del-btn {
-            font-size: 10px;
-            color: #aaa;
-            margin-top: 4px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(0,0,0,0.05);
-        }
-        .del-btn:hover { background: #ffdede; color: red; }
-
-        /* --- 新增區 --- */
-        .add-box { display: flex; gap: 8px; }
-        .add-box input {
-            flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px;
-        }
-        .add-box button {
-            background: var(--success); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer;
-        }
-
-        /* --- 訊息操作區 --- */
-        textarea {
-            width: 100%; 
-            height: 250px; 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 8px; 
-            font-size: 17px; 
-            background-color: #fafafa; 
-            resize: none; 
-            box-sizing: border-box;
-            line-height: 1.5;
-        }
-
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-big {
-            padding: 12px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; color: white; transition: opacity 0.2s;
-        }
-        .btn-big:active { opacity: 0.8; }
-        .btn-copy { flex: 2; background-color: var(--primary); }
-        .btn-clear { flex: 1; background-color: var(--danger); }
-
-        /* --- 說明書區塊 --- */
-        .instructions {
-            margin-top: 30px;
-            border-top: 2px dashed #ddd;
-            padding-top: 20px;
-        }
-        .instructions h3 {
-            text-align: center; margin: 0 0 15px 0; font-size: 1.1rem; color: #666;
-        }
-        
-        details {
-            background-color: #f9f9f9;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            overflow: hidden;
-            border: 1px solid #eee;
-        }
-
-        summary {
-            padding: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            list-style: none;
-            background-color: #ececec;
-            color: #333;
-            font-size: 14px;
-        }
-        summary::-webkit-details-marker { display: none; }
-        summary::after {
-            content: '+'; float: right; font-weight: bold;
-        }
-        details[open] summary::after { content: '-'; }
-
-        .details-content {
-            padding: 15px;
-            font-size: 14px;
-            color: #555;
-            line-height: 1.6;
-            border-top: 1px solid #ddd;
-        }
-        .details-content b { color: #000; }
-
-        /* --- Toast --- */
-        .toast {
-            position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.85); color: #fff; padding: 8px 20px; border-radius: 20px; font-size: 14px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999;
+            display: inline-block;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>📅 隔日進貨通知</h2>
-
-    <!-- 1. 日期 -->
-    <div class="section">
-        <label>進貨日期 (預設明天，週日自動順延)</label>
-        <input type="date" id="datePicker">
-    </div>
-
-    <!-- 2. 廠商選單 -->
-    <div class="section">
-        <label>點擊選擇廠商：</label>
-        <div class="vendor-list" id="vendorList">
-            <!-- JS 動態生成 -->
+    <!-- 控制區 -->
+    <div class="controls-grid">
+        <!-- 左上：地點 -->
+        <div class="grid-item">
+            <span class="label-text">📍 門市/DC</span>
+            <select id="location-select">
+                <option value="">無 (不顯示)</option>
+                <option value="那瑪夏門市">那瑪夏門市</option>
+                <option value="霧台門市">霧台門市</option>
+                <option value="桃源門市">桃源門市</option>
+                <option value="新市">新市</option>
+                <option value="新市物流園區">新市物流園區</option>
+                <option value="嘉義">嘉義</option>
+                <option value="台中">台中</option>
+                <option value="大肚">大肚</option>
+                <option value="湖口">湖口</option>
+                <option value="電研">電研</option>
+                <option value="暖暖">暖暖</option>
+                <option value="花蓮">花蓮</option>
+                <option value="五股">五股</option> <!-- 新增 -->
+                <option value="鶯歌">鶯歌</option> <!-- 新增 -->
+            </select>
         </div>
 
-        <div class="add-box">
-            <input type="text" id="newVendorName" placeholder="輸入新廠商名稱...">
-            <button onclick="addCustomVendor()">＋ 新增並存檔</button>
+        <!-- 右上：項目 (可選/可自打) -->
+        <div class="grid-item">
+            <span class="label-text">📦 項目 (可選/可自打)</span>
+            <input list="action-list" id="action-input" placeholder="請點選或輸入">
+            <datalist id="action-list">
+                <!-- 1.庫存調撥 2.出貨紀錄 -->
+                <option value="庫存調撥">
+                <option value="出貨紀錄">
+                
+                <option value="隨下午ES車出貨">
+                <option value="隨晚ES車出貨">
+                <option value="門市寄庫">
+                <option value="進貨驗收">
+                <option value="退貨處理">
+                <option value="品溫異常">
+                <option value="異常回報">
+                <option value="備註：">
+            </datalist>
         </div>
-    </div>
 
-    <!-- 3. 訊息預覽 -->
-    <div class="section">
-        <label>訊息預覽：</label>
-        <textarea id="msgBox" readonly></textarea>
-
-        <div class="btn-group">
-            <button class="btn-big btn-clear" onclick="clearAll()">❌ 清除</button>
-            <button class="btn-big btn-copy" onclick="copyMsg()">📋 複製訊息</button>
+        <!-- 左下：交接人員 -->
+        <div class="grid-item">
+            <span class="label-text">🙋‍♂️ 交接其他人員後續作業</span>
+            <select id="person-select">
+                <option value="">無 (不顯示)</option>
+                <option value="早班ES人員">早班ES人員</option>
+                <option value="晚班ES人員">晚班ES人員</option>
+                <option value="庫務人員">庫務人員</option>
+                <option value="幹部人員">幹部人員</option>
+            </select>
         </div>
-    </div>
 
-    <!-- 4. 網站操作說明書 -->
-    <div class="instructions">
-        <h3>📖 網站操作說明</h3>
-        
-        <details>
-            <summary>👇 1. 如何發送進貨通知</summary>
-            <div class="details-content">
-                1. <b>確認日期</b>：系統預設為「明天」。<br>
-                (※ 若明天是週日，系統會自動跳成下週一)<br>
-                2. <b>選擇廠商</b>：點擊上方按鈕，變藍色代表已選取。<br>
-                3. <b>複製訊息</b>：確認文字無誤後，按藍色「📋 複製訊息」。<br>
-                4. <b>傳送</b>：到 LINE 群組貼上即可。
-            </div>
-        </details>
-
-        <details>
-            <summary>👇 2. 如何新增或刪除廠商</summary>
-            <div class="details-content">
-                ● <b>新增</b>：在輸入框打上名字，按「＋ 新增並存檔」。(系統會自動記錄，下次還在)<br><br>
-                ● <b>刪除</b>：你自己新增的廠商，按鈕下方會有「刪除」小字，點擊即可移除。<br>
-                (※ 原本固定的廠商無法刪除)
-            </div>
-        </details>
-
-        <details>
-            <summary>👇 3. 清除與隔日重置</summary>
-            <div class="details-content">
-                ● <b>一鍵清除</b>：按紅色「❌ 清除」可取消當下所有勾選。<br><br>
-                ● <b>隔日自動重置</b>：不用手動取消昨天的勾選，<b>隔天打開網頁時，系統會自動清空</b>，讓你直接開始新的一天。
-            </div>
-        </details>
-    </div>
-
-</div>
-
-<div id="toast" class="toast">提示訊息</div>
-
-<script>
-    // ==============================================
-    // 1. 固定廠商設定區
-    // ==============================================
-    const fixedVendors = [
-        "如記", 
-        "統一冰品", 
-        "耐速行銷", 
-        "泰安", 
-        "關北", 
-        "中原", 
-        "預購-云品", 
-        "預購-21世紀",
-        "預購-速達",
-        "預購-臻美"
-    ];
-    
-    let customVendors = [];
-    let selectedVendors = [];
-
-    const elDate = document.getElementById('datePicker');
-    const elList = document.getElementById('vendorList');
-    const elMsg = document.getElementById('msgBox');
-    const elInput = document.getElementById('newVendorName');
-
-    window.onload = function() {
-        initDate();        
-        loadFromStorage(); 
-        render();          
-        updateMsg();       
-    };
-
-    function initDate() {
-        const d = new Date();
-        d.setDate(d.getDate() + 1); 
-        if (d.getDay() === 0) {
-            d.setDate(d.getDate() + 1); 
-        }
-        elDate.value = d.toISOString().split('T')[0];
-    }
-
-    function loadFromStorage() {
-        const savedList = localStorage.getItem('my_custom_vendors_v3');
-        if (savedList) customVendors = JSON.parse(savedList);
-
-        const savedDate = localStorage.getItem('last_date');
-        const savedChecks = localStorage.getItem('last_checks');
-        
-        if (savedDate === elDate.value && savedChecks) {
-            selectedVendors = JSON.parse(savedChecks);
-        } else {
-            selectedVendors = [];
-            saveToStorage();
-        }
-    }
-
-    function saveToStorage() {
-        localStorage.setItem('my_custom_vendors_v3', JSON.stringify(customVendors));
-        localStorage.setItem('last_date', elDate.value);
-        localStorage.setItem('last_checks', JSON.stringify(selectedVendors));
-    }
-
-    // ★ 渲染與排序邏輯 (含預購置底)
-    function render() {
-        let html = '';
-        
-        // 合併所有廠商
-        let all = [...fixedVendors, ...customVendors];
-
-        // ★ 自動排序：如果有 "預購" 兩字，排到最後面
-        all.sort((a, b) => {
-            const isPreA = a.includes("預購");
-            const isPreB = b.includes("預購");
-
-            if (isPreA && !isPreB) return 1;  // A是預購，B不是 -> A 排後面
-            if (!isPreA && isPreB) return -1; // A不是，B是預購 -> A 排前面
-            return 0; // 都是或都不是 -> 維持原順序
-        });
-
-        all.forEach(name => {
-            const isChecked = selectedVendors.includes(name) ? 'checked' : '';
-            const isCustom = !fixedVendors.includes(name);
-            const delBtn = isCustom ? `<div class="del-btn" onclick="deleteVendor(event, '${name}')">刪除</div>` : '';
-
-            html += `
-                <div class="vendor-item">
-                    <input type="checkbox" id="v_${name}" value="${name}" ${isChecked} onchange="toggle('${name}')">
-                    <label for="v_${name}">
-                        <span>${name}</span>
-                        ${delBtn}
-                    </label>
+        <!-- 右下：數量輸入 -->
+        <div class="grid-item">
+            <span class="label-text">📝 數量 (只需填數字)</span>
+            <div class="input-group">
+                <div class="unit-input-wrapper">
+                    <input type="number" id="pallet-input" placeholder="">
+                    <span class="unit">板</span>
                 </div>
-            `;
+                <div class="unit-input-wrapper">
+                    <input type="number" id="box-input" placeholder="">
+                    <span class="unit">箱</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 相機區 -->
+    <div id="camera-wrapper">
+        <video id="video" autoplay playsinline></video>
+    </div>
+
+    <!-- 拍照按鈕 -->
+    <button id="snap-btn">📸 拍照存檔</button>
+
+    <!-- 畫布 -->
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- 結果區 -->
+    <div id="result-area">
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="ios-alert">⚠️ iPhone 請「長按圖片」加入照片</div>
+            <br>
+            <img id="result-image" src="" alt="Generated Photo">
+            <br>
+            <button id="reset-btn">🔄 繼續拍下一張</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultArea = document.getElementById('result-area');
+        const resultImage = document.getElementById('result-image');
+        const snapBtn = document.getElementById('snap-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        const locationSelect = document.getElementById('location-select');
+        const actionInput = document.getElementById('action-input'); 
+        const personSelect = document.getElementById('person-select');
+        const palletInput = document.getElementById('pallet-input');
+        const boxInput = document.getElementById('box-input');
+
+        // 1. 啟動相機
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(err => {
+                alert("相機開啟失敗: " + err);
+            });
+
+        // 2. 拍照邏輯
+        snapBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            
+            const w = video.videoWidth;
+            const h = video.videoHeight;
+            const footerHeight = h * 0.15; 
+            
+            canvas.width = w;
+            canvas.height = h + footerHeight;
+
+            // 畫白底
+            context.fillStyle = "#FFFFFF";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 畫照片
+            context.drawImage(video, 0, 0, w, h);
+
+            // 準備資料
+            const loc = locationSelect.value;
+            const act = actionInput.value; 
+            const person = personSelect.value; 
+            const dateText = new Date().toLocaleDateString('zh-TW');
+            
+            const pVal = palletInput.value.trim();
+            const bVal = boxInput.value.trim();
+            let qtyText = "";
+            if(pVal !== "") qtyText += `${pVal}板 `;
+            if(bVal !== "") qtyText += `${bVal}箱`;
+            
+            // 字體與排版
+            const fontSizeMain = Math.floor(w * 0.035); 
+            const fontSizeSub = Math.floor(w * 0.028); 
+            const padX = w * 0.03; 
+            
+            const line1Y = h + (footerHeight * 0.35);
+            const line2Y = h + (footerHeight * 0.65);
+            const line3Y = h + (footerHeight * 0.90);
+
+            context.textAlign = "left";
+            context.fillStyle = "#000000"; 
+
+            // 左側內容
+            if (loc !== "") {
+                context.font = `bold ${fontSizeMain}px '微軟正黑體', Arial`;
+                context.fillText(`門市/DC：${loc}`, padX, line1Y);
+            }
+            
+            // 項目
+            context.font = `${fontSizeSub}px '微軟正黑體', Arial`;
+            const finalAct = act !== "" ? act : "無紀錄"; 
+            context.fillText(`項目：${finalAct}`, padX, line2Y);
+
+            // 右側內容
+            context.textAlign = "right";
+            const rightX = w - padX;
+
+            if (person !== "") {
+                context.font = `bold ${fontSizeSub}px '微軟正黑體', Arial`;
+                context.fillStyle = "#0056b3"; 
+                context.fillText(`麻煩 ${person} 協助，感謝`, rightX, line1Y);
+            }
+
+            // 日期
+            context.fillStyle = "#555";
+            context.font = `${fontSizeSub}px '微軟正黑體', Arial`;
+            context.fillText(`日期：${dateText}`, rightX, line2Y);
+
+            // 底部數量
+            if (qtyText !== "") {
+                context.textAlign = "left"; 
+                context.fillStyle = "#D32F2F"; 
+                context.font = `bold ${fontSizeSub}px '微軟正黑體', Arial`;
+                context.fillText(`數量：${qtyText}`, padX, line3Y);
+            }
+
+            // 分隔線
+            context.strokeStyle = "#ddd";
+            context.lineWidth = 1;
+            context.beginPath();
+            context.moveTo(0, h);
+            context.lineTo(w, h);
+            context.stroke();
+
+            // 輸出
+            const dataURL = canvas.toDataURL('image/jpeg', 0.95);
+            resultImage.src = dataURL;
+            resultArea.style.display = 'block';
+
+            // 檔名邏輯
+            let filename = "";
+            if (loc !== "") filename += `${loc}_`;
+            filename += `${finalAct}`;
+            
+            if(qtyText !== "") filename += `_${qtyText.replace(/ /g, '_')}`;
+            filename += `_${dateText.replace(/\//g, '')}.jpg`;
+
+            autoDownload(dataURL, filename);
         });
-        elList.innerHTML = html;
-    }
 
-    window.toggle = function(name) {
-        if (selectedVendors.includes(name)) {
-            selectedVendors = selectedVendors.filter(v => v !== name);
-        } else {
-            selectedVendors.push(name);
+        // 3. 繼續拍下一張
+        resetBtn.addEventListener('click', () => {
+            resultArea.style.display = 'none';
+            resultImage.src = "";
+        });
+
+        function autoDownload(url, filename) {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) return; 
+
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
-        saveToStorage();
-        updateMsg();
-    }
-
-    window.addCustomVendor = function() {
-        const name = elInput.value.trim();
-        if (!name) return showToast("請輸入名稱");
-        if (fixedVendors.includes(name) || customVendors.includes(name)) return showToast("廠商已存在");
-
-        customVendors.push(name);
-        saveToStorage();
-        elInput.value = '';
-        render(); 
-        showToast(`已新增：${name}`);
-    }
-
-    window.deleteVendor = function(e, name) {
-        e.preventDefault();
-        if (!confirm(`確定刪除「${name}」嗎？`)) return;
-        customVendors = customVendors.filter(v => v !== name);
-        selectedVendors = selectedVendors.filter(v => v !== name);
-        saveToStorage();
-        render();
-        updateMsg();
-        showToast("已刪除");
-    }
-
-    window.clearAll = function() {
-        selectedVendors = [];
-        saveToStorage();
-        render(); 
-        updateMsg();
-        showToast("已全部清除");
-    }
-
-    function updateMsg() {
-        const dateStr = elDate.value;
-        const dayName = ['日','一','二','三','四','五','六'][new Date(dateStr).getDay()];
-        const listText = selectedVendors.length > 0 ? selectedVendors.join('\n- ') : '無';
-        elMsg.value = `【進貨通知】\n日期：${dateStr} (週${dayName})\n\n預計進貨廠商：\n- ${listText}\n\n請相關人員留意收貨。`;
-    }
-
-    window.copyMsg = function() {
-        elMsg.select();
-        elMsg.setSelectionRange(0, 99999);
-        navigator.clipboard.writeText(elMsg.value)
-            .then(() => showToast("複製成功！"))
-            .catch(() => showToast("複製失敗，請手動複製"));
-    }
-
-    elDate.addEventListener('change', function() {
-        localStorage.setItem('last_date', elDate.value);
-        updateMsg();
-    });
-
-    function showToast(text) {
-        const t = document.getElementById('toast');
-        t.textContent = text;
-        t.style.opacity = 1;
-        setTimeout(() => t.style.opacity = 0, 2000);
-    }
-</script>
-
+    </script>
 </body>
 </html>
