@@ -3,471 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>進貨通知產生器 (進階版)</title>
+    <title>進貨通知系統 (自動存檔版)</title>
     <style>
+        /* --- 基礎設定 --- */
         :root {
-            --primary-color: #007bff;
-            --danger-color: #dc3545;
-            --success-color: #28a745;
-            --bg-color: #f4f4f9;
-            --card-bg: #ffffff;
+            --primary: #007bff;   /* 藍色：主要 */
+            --success: #28a745;   /* 綠色：新增/複製 */
+            --danger: #dc3545;    /* 紅色：清除 */
+            --bg: #f4f4f9;
+            --card: #ffffff;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg);
             margin: 0;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             justify-content: center;
+            color: #333;
         }
 
         .container {
-            background-color: var(--card-bg);
+            background-color: var(--card);
             width: 100%;
-            max-width: 600px;
+            max-width: 500px; /* 手機寬度適中 */
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         h2 {
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
+            margin: 0 0 20px 0;
+            font-size: 1.4rem;
+            color: #444;
         }
 
-        .control-group {
+        .section {
             margin-bottom: 20px;
-            border-bottom: 1px solid #eee;
             padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
         }
-        
-        .control-group:last-child {
-            border-bottom: none;
-        }
+        .section:last-child { border-bottom: none; }
 
         label {
-            display: block;
             font-weight: bold;
+            display: block;
             margin-bottom: 8px;
             color: #555;
         }
 
+        /* --- 日期選擇 --- */
         input[type="date"] {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 16px;
             background: #fff;
             box-sizing: border-box;
         }
 
-        /* --- 廠商列表樣式 --- */
+        /* --- 廠商列表區 (Grid排版) --- */
         .vendor-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* 手機版自動排列 */
+            grid-template-columns: repeat(3, 1fr); /* 一排三個 */
             gap: 8px;
             margin-bottom: 15px;
         }
 
-        .vendor-item input[type="checkbox"] {
-            display: none;
-        }
+        /* 隱藏原始 checkbox */
+        .vendor-item input { display: none; }
 
+        /* 按鈕樣式 */
         .vendor-item label {
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background-color: #f1f1f1;
+            justify-content: center;
+            background-color: #f0f2f5;
             padding: 10px 5px;
-            text-align: center;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: normal;
             font-size: 14px;
-            transition: all 0.2s;
+            text-align: center;
+            min-height: 40px;
             border: 2px solid transparent;
+            transition: 0.2s;
+            position: relative;
             user-select: none;
-            min-height: 44px; /* 手機好按的高度 */
             word-break: break-word;
         }
 
-        /* 選中狀態 */
-        .vendor-item input[type="checkbox"]:checked + label {
-            background-color: #e6f2ff;
-            border-color: var(--primary-color);
-            color: var(--primary-color);
+        /* 選中變色 */
+        .vendor-item input:checked + label {
+            background-color: #e7f1ff;
+            border-color: var(--primary);
+            color: var(--primary);
             font-weight: bold;
         }
 
-        /* --- 新增廠商區域 --- */
-        .add-vendor-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+        /* 刪除小按鈕 (僅自訂廠商顯示) */
+        .del-btn {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.05);
+        }
+        .del-btn:hover {
+            background: #ffdede;
+            color: red;
         }
 
-        .add-vendor-area input {
+        /* --- 新增廠商區 --- */
+        .add-box {
+            display: flex;
+            gap: 8px;
+        }
+        .add-box input {
             flex: 1;
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
+            font-size: 15px;
         }
-
-        .btn-add {
-            background-color: var(--success-color);
+        .add-box button {
+            background: var(--success);
             color: white;
             border: none;
             padding: 0 15px;
             border-radius: 6px;
-            cursor: pointer;
             font-weight: bold;
-        }
-
-        .delete-btn {
-            font-size: 10px;
-            color: #999;
-            margin-left: 5px;
             cursor: pointer;
         }
 
-        /* --- 按鈕群組 --- */
-        .action-buttons {
+        /* --- 文字預覽與操作區 --- */
+        textarea {
+            width: 100%;
+            height: 110px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: #fafafa;
+            resize: none;
+            box-sizing: border-box;
+        }
+
+        .btn-group {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
 
-        button {
-            font-size: 16px;
+        .btn-big {
             padding: 12px;
-            border-radius: 8px;
             border: none;
+            border-radius: 8px;
+            font-size: 16px;
             cursor: pointer;
+            color: white;
             transition: opacity 0.2s;
         }
-        
-        button:active {
-            opacity: 0.8;
-        }
+        .btn-big:active { opacity: 0.8; }
 
-        .btn-copy {
-            flex: 2;
-            background-color: var(--primary-color);
-            color: white;
-        }
+        .btn-copy { flex: 2; background-color: var(--primary); }
+        .btn-clear { flex: 1; background-color: var(--danger); }
 
-        .btn-clear {
-            flex: 1;
-            background-color: var(--danger-color);
-            color: white;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-            resize: none;
-            box-sizing: border-box;
-            background-color: #fafafa;
-        }
-
+        /* --- 提示框 (Toast) --- */
         .toast {
             position: fixed;
-            bottom: 30px;
+            bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            background-color: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
+            background: rgba(0,0,0,0.85);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
             opacity: 0;
             transition: opacity 0.3s;
             pointer-events: none;
-            z-index: 100;
+            z-index: 999;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>📅 進貨通知小幫手</h2>
+    <h2>📅 隔日進貨通知</h2>
 
-    <!-- 日期選擇 -->
-    <div class="control-group">
-        <label for="datePicker">進貨日期：</label>
+    <!-- 1. 日期 -->
+    <div class="section">
+        <label>進貨日期 (預設明天)</label>
         <input type="date" id="datePicker">
     </div>
 
-    <!-- 廠商列表 -->
-    <div class="control-group">
+    <!-- 2. 廠商選單 -->
+    <div class="section">
         <label>點擊選擇廠商：</label>
-        <div class="vendor-list" id="vendorContainer">
-            <!-- JS 自動生成 -->
+        <div class="vendor-list" id="vendorList">
+            <!-- JS 動態生成 -->
         </div>
 
-        <!-- 自行新增廠商 -->
-        <label style="margin-top:15px; font-size: 14px;">＋ 新增其他廠商：</label>
-        <div class="add-vendor-area">
-            <input type="text" id="newVendorInput" placeholder="輸入廠商名稱">
-            <button class="btn-add" onclick="addNewVendor()">新增</button>
+        <!-- 新增功能 -->
+        <div class="add-box">
+            <input type="text" id="newVendorName" placeholder="輸入新廠商名稱...">
+            <button onclick="addCustomVendor()">＋ 新增並存檔</button>
         </div>
     </div>
 
-    <!-- 訊息與按鈕 -->
-    <div class="control-group">
+    <!-- 3. 訊息預覽 -->
+    <div class="section">
         <label>訊息預覽：</label>
-        <textarea id="messageOutput" readonly></textarea>
-        
-        <div class="action-buttons">
-            <button class="btn-clear" onclick="clearSelection()">❌ 清除選取</button>
-            <button class="btn-copy" onclick="copyText()">📋 複製訊息</button>
+        <textarea id="msgBox" readonly></textarea>
+
+        <div class="btn-group">
+            <button class="btn-big btn-clear" onclick="clearAll()">❌ 清除</button>
+            <button class="btn-big btn-copy" onclick="copyMsg()">📋 複製 LINE</button>
         </div>
     </div>
 </div>
 
-<div id="toast" class="toast">已複製到剪貼簿！</div>
+<div id="toast" class="toast">提示訊息</div>
 
 <script>
     // ==========================================
-    // 1. 初始設定與資料
+    // 資料設定
     // ==========================================
     
-    // 預設固定廠商 (使用者不可刪除，除非改程式碼)
-    const defaultVendors = [
-        "如記", 
-        "統一冰品", 
-        "耐速行銷", 
-        "泰安", 
-        "關北", 
-        "中原", 
-        "預購-云品", 
-        "預購-21世紀"
-    ];
+    // 1. 固定廠商 (不會被刪除)
+    const fixedVendors = ["如記", "統一冰品", "耐速行銷", "泰安", "關北", "中原", "預購-云品", "預購-21世紀"];
+    
+    // 2. 變數
+    let customVendors = [];   // 使用者新增的廠商 (會存檔)
+    let selectedVendors = []; // 目前勾選的廠商 (當日存檔)
 
     // DOM 元素
-    const datePicker = document.getElementById('datePicker');
-    const vendorContainer = document.getElementById('vendorContainer');
-    const messageOutput = document.getElementById('messageOutput');
-    const newVendorInput = document.getElementById('newVendorInput');
-
-    // 狀態變數
-    let customVendors = [];   // 使用者自訂的廠商
-    let selectedVendors = []; // 目前被勾選的廠商名稱
+    const elDate = document.getElementById('datePicker');
+    const elList = document.getElementById('vendorList');
+    const elMsg = document.getElementById('msgBox');
+    const elInput = document.getElementById('newVendorName');
 
     // ==========================================
-    // 2. 程式啟動邏輯 (讀取與初始化)
+    // 初始化與讀檔
     // ==========================================
     window.onload = function() {
-        initDate();        // 1. 設定日期
-        loadData();        // 2. 讀取存檔 (自訂廠商 + 勾選狀態)
-        renderVendors();   // 3. 畫出畫面
-        updateMessage();   // 4. 更新文字
+        initDate();       // 設定日期
+        loadFromStorage(); // 讀取存檔
+        render();         // 繪製畫面
+        updateMsg();      // 更新文字
     };
 
-    // 初始化日期 (預設明天)
     function initDate() {
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const yyyy = tomorrow.getFullYear();
-        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-        const dd = String(tomorrow.getDate()).padStart(2, '0');
-        
-        // 這裡先設定 input 的值
-        datePicker.value = `${yyyy}-${mm}-${dd}`;
+        const d = new Date();
+        d.setDate(d.getDate() + 1); // 預設明天
+        elDate.value = d.toISOString().split('T')[0];
     }
 
-    // ==========================================
-    // 3. 資料儲存與讀取邏輯 (LocalStorage)
-    // ==========================================
-    
-    function loadData() {
-        // A. 讀取自訂廠商名單
-        const savedCustom = localStorage.getItem('custom_vendors');
-        if (savedCustom) {
-            customVendors = JSON.parse(savedCustom);
+    // ★ 重點：讀取存檔功能
+    function loadFromStorage() {
+        // 讀取「自訂廠商名單」
+        const savedList = localStorage.getItem('my_custom_vendors_v3');
+        if (savedList) {
+            customVendors = JSON.parse(savedList);
         }
 
-        // B. 讀取上次勾選狀態 (含隔日清除邏輯)
-        const savedDate = localStorage.getItem('saved_date');
-        const savedSelection = localStorage.getItem('selected_vendors');
-        const currentDate = datePicker.value; // 剛剛算出來的「明天」
-
-        // 邏輯：如果「存檔的日期」跟「現在算出來的日期」一樣，代表是同一天的工作，就載入勾選
-        // 如果不一樣 (代表過了一天，或者換日了)，就不載入勾選 (等同於清除)
-        if (savedDate === currentDate && savedSelection) {
-            selectedVendors = JSON.parse(savedSelection);
+        // 讀取「勾選狀態」 (需判斷日期)
+        const savedDate = localStorage.getItem('last_date');
+        const savedChecks = localStorage.getItem('last_checks');
+        
+        // 如果存檔日期 == 畫面上的日期，才載入勾選 (否則視為隔天，清空勾選)
+        if (savedDate === elDate.value && savedChecks) {
+            selectedVendors = JSON.parse(savedChecks);
         } else {
-            selectedVendors = []; // 不同天，清空勾選
-            // 更新存檔日期為今天顯示的日期
-            localStorage.setItem('saved_date', currentDate);
-            localStorage.setItem('selected_vendors', JSON.stringify([]));
+            selectedVendors = []; // 新的一天，清空
+            saveToStorage();      // 更新日期存檔
         }
     }
 
-    function saveData() {
-        // 1. 儲存自訂廠商清單
-        localStorage.setItem('custom_vendors', JSON.stringify(customVendors));
+    // ★ 重點：寫入存檔功能
+    function saveToStorage() {
+        // 1. 永久存：自訂廠商名單
+        localStorage.setItem('my_custom_vendors_v3', JSON.stringify(customVendors));
         
-        // 2. 儲存目前的勾選狀態與日期
-        localStorage.setItem('saved_date', datePicker.value);
-        localStorage.setItem('selected_vendors', JSON.stringify(selectedVendors));
+        // 2. 暫時存：目前的日期 與 勾選狀態
+        localStorage.setItem('last_date', elDate.value);
+        localStorage.setItem('last_checks', JSON.stringify(selectedVendors));
     }
 
     // ==========================================
-    // 4. 渲染與互動邏輯
+    // 畫面繪製
     // ==========================================
-
-    // 畫出所有廠商按鈕
-    function renderVendors() {
-        vendorContainer.innerHTML = '';
+    function render() {
+        let html = '';
         
-        // 合併預設和自訂名單
-        const allVendors = [...defaultVendors, ...customVendors];
+        // 合併名單：固定 + 自訂
+        const all = [...fixedVendors, ...customVendors];
 
-        allVendors.forEach((name, index) => {
-            // 檢查是否在已選名單中
+        all.forEach(name => {
             const isChecked = selectedVendors.includes(name) ? 'checked' : '';
             
-            // 判斷是否為自訂廠商 (用來決定要不要顯示刪除小按鈕)
-            const isCustom = index >= defaultVendors.length;
-            const deleteBtnHtml = isCustom 
-                ? `<span class="delete-btn" onclick="removeCustomVendor('${name}'); event.preventDefault();">✕</span>` 
+            // 判斷是否為自訂 (用來顯示刪除按鈕)
+            const isCustom = !fixedVendors.includes(name);
+            
+            // 刪除按鈕 HTML
+            const delBtn = isCustom 
+                ? `<div class="del-btn" onclick="deleteVendor(event, '${name}')">刪除</div>` 
                 : '';
 
-            const html = `
+            html += `
                 <div class="vendor-item">
-                    <input type="checkbox" id="v_${index}" value="${name}" ${isChecked} onchange="toggleVendor('${name}')">
-                    <label for="v_${index}">
-                        ${name}
-                        ${deleteBtnHtml}
+                    <input type="checkbox" id="v_${name}" value="${name}" ${isChecked} onchange="toggle('${name}')">
+                    <label for="v_${name}">
+                        <span>${name}</span>
+                        ${delBtn}
                     </label>
                 </div>
             `;
-            vendorContainer.insertAdjacentHTML('beforeend', html);
         });
+
+        elList.innerHTML = html;
     }
 
-    // 勾選/取消勾選
-    window.toggleVendor = function(name) {
-        const idx = selectedVendors.indexOf(name);
-        if (idx > -1) {
-            selectedVendors.splice(idx, 1); // 移除
-        } else {
-            selectedVendors.push(name); // 新增
-        }
-        saveData(); // 立即存檔
-        updateMessage();
-    }
+    // ==========================================
+    // 操作邏輯
+    // ==========================================
 
-    // 新增自訂廠商
-    window.addNewVendor = function() {
-        const name = newVendorInput.value.trim();
-        if (!name) return;
-        
-        if (defaultVendors.includes(name) || customVendors.includes(name)) {
-            showToast("廠商已存在！");
-            return;
-        }
-
-        customVendors.push(name);
-        newVendorInput.value = '';
-        
-        saveData();
-        renderVendors();
-        // 自動幫忙勾選剛新增的
-        // toggleVendor(name); // 如果不想自動勾選，這行註解掉
-    }
-
-    // 移除自訂廠商
-    window.removeCustomVendor = function(name) {
-        // 防止觸發 checkbox
-        event.stopPropagation(); 
-        
-        if(confirm(`確定要刪除「${name}」嗎？`)) {
-            // 從自訂名單移除
-            customVendors = customVendors.filter(v => v !== name);
-            // 如果原本有勾選，也要移除
+    // 1. 勾選/取消
+    window.toggle = function(name) {
+        if (selectedVendors.includes(name)) {
             selectedVendors = selectedVendors.filter(v => v !== name);
-            
-            saveData();
-            renderVendors();
-            updateMessage();
+        } else {
+            selectedVendors.push(name);
         }
+        saveToStorage(); // 自動存檔
+        updateMsg();
     }
 
-    // 一鍵清除選取
-    window.clearSelection = function() {
+    // 2. 新增廠商 (包含自動存檔)
+    window.addCustomVendor = function() {
+        const name = elInput.value.trim();
+        if (!name) return showToast("請輸入名稱");
+        
+        // 檢查重複
+        if (fixedVendors.includes(name) || customVendors.includes(name)) {
+            return showToast("廠商已存在");
+        }
+
+        customVendors.push(name); // 加入列表
+        saveToStorage();          // ★ 這裡會自動存到手機
+        
+        elInput.value = '';       // 清空輸入框
+        render();                 // 重畫按鈕
+        showToast(`已新增並儲存：${name}`);
+    }
+
+    // 3. 刪除廠商
+    window.deleteVendor = function(e, name) {
+        e.preventDefault(); // 防止觸發勾選
+        if (!confirm(`確定要永久刪除「${name}」嗎？`)) return;
+
+        customVendors = customVendors.filter(v => v !== name);
+        selectedVendors = selectedVendors.filter(v => v !== name); // 若有勾選也要移除
+        
+        saveToStorage();
+        render();
+        updateMsg();
+        showToast("廠商已刪除");
+    }
+
+    // 4. 一鍵清除勾選
+    window.clearAll = function() {
         selectedVendors = [];
         
-        // 視覺上取消所有 checkbox
-        const checkboxes = document.querySelectorAll('.vendor-list input[type="checkbox"]');
-        checkboxes.forEach(box => box.checked = false);
+        // 視覺清除
+        document.querySelectorAll('input[type="checkbox"]').forEach(el => el.checked = false);
         
-        saveData();
-        updateMessage();
-        showToast("已清除所有勾選");
+        saveToStorage();
+        updateMsg();
+        showToast("已全部清除");
     }
 
-    // 監聽日期變更
-    datePicker.addEventListener('change', function() {
-        // 日期變更時，我們選擇「不」自動清除勾選，
-        // 讓使用者可以方便地選好後改日期，或者改日期後補選。
-        // 但要更新存檔日期，避免重整後被當作「隔天」清掉
-        localStorage.setItem('saved_date', datePicker.value);
-        updateMessage();
+    // 5. 產生文字訊息
+    function updateMsg() {
+        const dateStr = elDate.value;
+        const dayName = ['日','一','二','三','四','五','六'][new Date(dateStr).getDay()];
+        
+        const listText = selectedVendors.length > 0 
+            ? selectedVendors.join('\n- ') 
+            : '無';
+
+        elMsg.value = `【進貨通知】\n日期：${dateStr} (週${dayName})\n\n預計進貨廠商：\n- ${listText}\n\n請相關人員留意收貨。`;
+    }
+
+    // 6. 複製
+    window.copyMsg = function() {
+        elMsg.select();
+        elMsg.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(elMsg.value)
+            .then(() => showToast("複製成功！"))
+            .catch(() => showToast("複製失敗，請手動複製"));
+    }
+
+    // 日期變更監聽
+    elDate.addEventListener('change', function() {
+        // 當手動改日期時，不自動清除勾選，讓使用者可以補單，但會更新存檔日期
+        localStorage.setItem('last_date', elDate.value);
+        updateMsg();
     });
 
-    // 取得星期幾
-    function getDayName(dateString) {
-        const days = ['日', '一', '二', '三', '四', '五', '六'];
-        const d = new Date(dateString);
-        return days[d.getDay()];
+    // 顯示提示
+    function showToast(text) {
+        const t = document.getElementById('toast');
+        t.textContent = text;
+        t.style.opacity = 1;
+        setTimeout(() => t.style.opacity = 0, 2000);
     }
 
-    // 更新訊息內容
-    function updateMessage() {
-        const dateVal = datePicker.value;
-        const dayName = getDayName(dateVal);
-        
-        const vendorText = selectedVendors.length > 0 ? selectedVendors.join('\n- ') : '無';
-
-        const finalMessage = `【進貨通知】\n日期：${dateVal} (週${dayName})\n\n預計進貨廠商：\n- ${vendorText}\n\n請相關人員留意收貨。`;
-
-        messageOutput.value = finalMessage;
-    }
-
-    // 複製功能
-    window.copyText = function() {
-        messageOutput.select();
-        messageOutput.setSelectionRange(0, 99999);
-        
-        try {
-            navigator.clipboard.writeText(messageOutput.value).then(() => {
-                showToast("已複製到剪貼簿！");
-            });
-        } catch (err) {
-            document.execCommand("copy");
-            showToast("已複製！");
-        }
-    }
-
-    function showToast(msg) {
-        const toast = document.getElementById("toast");
-        toast.innerText = msg;
-        toast.style.opacity = 1;
-        setTimeout(() => {
-            toast.style.opacity = 0;
-        }, 2000);
-    }
 </script>
 
 </body>
