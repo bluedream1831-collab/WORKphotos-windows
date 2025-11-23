@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>進貨通知系統 (加大版)</title>
+    <title>進貨通知 (自動跳過週日)</title>
     <style>
         /* --- 基礎設定 --- */
         :root {
@@ -119,14 +119,14 @@
             background: var(--success); color: white; border: none; padding: 0 15px; border-radius: 6px; font-weight: bold; cursor: pointer;
         }
 
-        /* --- 訊息操作區 (已加大) --- */
+        /* --- 訊息操作區 --- */
         textarea {
             width: 100%; 
-            height: 250px; /* 這裡改大了 (原110px) */
+            height: 250px; 
             padding: 12px; 
             border: 1px solid #ccc; 
             border-radius: 8px; 
-            font-size: 17px; /* 字體稍微加大 (原15px) */
+            font-size: 17px; 
             background-color: #fafafa; 
             resize: none; 
             box-sizing: border-box;
@@ -196,7 +196,7 @@
 
     <!-- 1. 日期 -->
     <div class="section">
-        <label>進貨日期 (預設明天)</label>
+        <label>進貨日期 (預設明天，週日自動順延)</label>
         <input type="date" id="datePicker">
     </div>
 
@@ -213,7 +213,7 @@
         </div>
     </div>
 
-    <!-- 3. 訊息預覽 (已加大) -->
+    <!-- 3. 訊息預覽 -->
     <div class="section">
         <label>訊息預覽：</label>
         <textarea id="msgBox" readonly></textarea>
@@ -231,7 +231,8 @@
         <details>
             <summary>👇 1. 如何發送進貨通知</summary>
             <div class="details-content">
-                1. <b>確認日期</b>：預設為明天。<br>
+                1. <b>確認日期</b>：系統預設為「明天」。<br>
+                (※ 若明天是週日，系統會自動跳成下週一)<br>
                 2. <b>選擇廠商</b>：點擊上方按鈕，變藍色代表已選取。<br>
                 3. <b>複製訊息</b>：確認文字無誤後，按藍色「📋 複製 LINE」。<br>
                 4. <b>傳送</b>：到 LINE 群組貼上即可。
@@ -261,8 +262,20 @@
 <div id="toast" class="toast">提示訊息</div>
 
 <script>
-    // 固定廠商
-    const fixedVendors = ["如記", "統一冰品", "耐速行銷", "泰安", "關北", "中原", "預購-云品", "預購-21世紀"];
+    // ==============================================
+    // 1. 固定廠商設定區 (請在這裡加入不見的廠商)
+    // ==============================================
+    const fixedVendors = [
+        "如記", 
+        "統一冰品", 
+        "耐速行銷", 
+        "泰安", 
+        "關北", 
+        "中原", 
+        "預購-云品", 
+        "預購-21世紀"
+        // 你可以在這裡繼續加，例如： "蛋商", "免洗餐具"
+    ];
     
     let customVendors = [];
     let selectedVendors = [];
@@ -273,15 +286,23 @@
     const elInput = document.getElementById('newVendorName');
 
     window.onload = function() {
-        initDate();
-        loadFromStorage();
-        render();
-        updateMsg();
+        initDate();        // 1. 設定日期 (含週日跳週一邏輯)
+        loadFromStorage(); // 2. 讀檔
+        render();          // 3. 繪圖
+        updateMsg();       // 4. 更新文字
     };
 
+    // ★ 日期初始化邏輯 (含自動跳過週日)
     function initDate() {
         const d = new Date();
-        d.setDate(d.getDate() + 1);
+        d.setDate(d.getDate() + 1); // 先加 1 天 (變明天)
+
+        // 檢查：如果這天是 星期日 (getDay() == 0)
+        if (d.getDay() === 0) {
+            d.setDate(d.getDate() + 1); // 再加 1 天 (變星期一)
+        }
+
+        // 格式化成 YYYY-MM-DD
         elDate.value = d.toISOString().split('T')[0];
     }
 
