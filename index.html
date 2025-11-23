@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>進貨通知 (自動跳過週日)</title>
+    <title>進貨通知 (預購置底版)</title>
     <style>
         /* --- 基礎設定 --- */
         :root {
@@ -263,7 +263,7 @@
 
 <script>
     // ==============================================
-    // 1. 固定廠商設定區 (請在這裡加入不見的廠商)
+    // 1. 固定廠商設定區
     // ==============================================
     const fixedVendors = [
         "如記", 
@@ -273,8 +273,9 @@
         "關北", 
         "中原", 
         "預購-云品", 
-        "預購-21世紀"
-        // 你可以在這裡繼續加，例如： "蛋商", "免洗餐具"
+        "預購-21世紀",
+        "預購-速達",  // 新增
+        "預購-臻美"   // 新增
     ];
     
     let customVendors = [];
@@ -286,23 +287,18 @@
     const elInput = document.getElementById('newVendorName');
 
     window.onload = function() {
-        initDate();        // 1. 設定日期 (含週日跳週一邏輯)
-        loadFromStorage(); // 2. 讀檔
-        render();          // 3. 繪圖
-        updateMsg();       // 4. 更新文字
+        initDate();        
+        loadFromStorage(); 
+        render();          
+        updateMsg();       
     };
 
-    // ★ 日期初始化邏輯 (含自動跳過週日)
     function initDate() {
         const d = new Date();
-        d.setDate(d.getDate() + 1); // 先加 1 天 (變明天)
-
-        // 檢查：如果這天是 星期日 (getDay() == 0)
+        d.setDate(d.getDate() + 1); 
         if (d.getDay() === 0) {
-            d.setDate(d.getDate() + 1); // 再加 1 天 (變星期一)
+            d.setDate(d.getDate() + 1); 
         }
-
-        // 格式化成 YYYY-MM-DD
         elDate.value = d.toISOString().split('T')[0];
     }
 
@@ -327,9 +323,22 @@
         localStorage.setItem('last_checks', JSON.stringify(selectedVendors));
     }
 
+    // ★ 渲染與排序邏輯 (含預購置底)
     function render() {
         let html = '';
-        const all = [...fixedVendors, ...customVendors];
+        
+        // 合併所有廠商
+        let all = [...fixedVendors, ...customVendors];
+
+        // ★ 自動排序：如果有 "預購" 兩字，排到最後面
+        all.sort((a, b) => {
+            const isPreA = a.includes("預購");
+            const isPreB = b.includes("預購");
+
+            if (isPreA && !isPreB) return 1;  // A是預購，B不是 -> A 排後面
+            if (!isPreA && isPreB) return -1; // A不是，B是預購 -> A 排前面
+            return 0; // 都是或都不是 -> 維持原順序
+        });
 
         all.forEach(name => {
             const isChecked = selectedVendors.includes(name) ? 'checked' : '';
@@ -367,7 +376,7 @@
         customVendors.push(name);
         saveToStorage();
         elInput.value = '';
-        render();
+        render(); // 這裡會自動重新排序
         showToast(`已新增：${name}`);
     }
 
