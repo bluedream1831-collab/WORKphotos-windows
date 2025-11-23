@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>進貨通知產生器 (進階版)</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+        
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        /* --- 廠商列表樣式 --- */
+        .vendor-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* 手機版自動排列 */
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .vendor-item input[type="checkbox"] {
+            display: none;
+        }
+
+        .vendor-item label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f1f1f1;
+            padding: 10px 5px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: normal;
+            font-size: 14px;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            user-select: none;
+            min-height: 44px; /* 手機好按的高度 */
+            word-break: break-word;
+        }
+
+        /* 選中狀態 */
+        .vendor-item input[type="checkbox"]:checked + label {
+            background-color: #e6f2ff;
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* --- 新增廠商區域 --- */
+        .add-vendor-area {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .add-vendor-area input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .btn-add {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 0 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .delete-btn {
+            font-size: 10px;
+            color: #999;
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        /* --- 按鈕群組 --- */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        button:active {
+            opacity: 0.8;
+        }
+
+        .btn-copy {
+            flex: 2;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-clear {
+            flex: 1;
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+            background-color: #fafafa;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📅 進貨通知小幫手</h2>
+
+    <!-- 日期選擇 -->
+    <div class="control-group">
+        <label for="datePicker">進貨日期：</label>
+        <input type="date" id="datePicker">
+    </div>
+
+    <!-- 廠商列表 -->
+    <div class="control-group">
+        <label>點擊選擇廠商：</label>
+        <div class="vendor-list" id="vendorContainer">
+            <!-- JS 自動生成 -->
+        </div>
+
+        <!-- 自行新增廠商 -->
+        <label style="margin-top:15px; font-size: 14px;">＋ 新增其他廠商：</label>
+        <div class="add-vendor-area">
+            <input type="text" id="newVendorInput" placeholder="輸入廠商名稱">
+            <button class="btn-add" onclick="addNewVendor()">新增</button>
+        </div>
+    </div>
+
+    <!-- 訊息與按鈕 -->
+    <div class="control-group">
+        <label>訊息預覽：</label>
+        <textarea id="messageOutput" readonly></textarea>
+        
+        <div class="action-buttons">
+            <button class="btn-clear" onclick="clearSelection()">❌ 清除選取</button>
+            <button class="btn-copy" onclick="copyText()">📋 複製訊息</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast">已複製到剪貼簿！</div>
+
+<script>
+    // ==========================================
+    // 1. 初始設定與資料
+    // ==========================================
+    
+    // 預設固定廠商 (使用者不可刪除，除非改程式碼)
+    const defaultVendors = [
+        "如記", 
+        "統一冰品", 
+        "耐速行銷", 
+        "泰安", 
+        "關北", 
+        "中原", 
+        "預購-云品", 
+        "預購-21世紀"
+    ];
+
+    // DOM 元素
+    const datePicker = document.getElementById('datePicker');
+    const vendorContainer = document.getElementById('vendorContainer');
+    const messageOutput = document.getElementById('messageOutput');
+    const newVendorInput = document.getElementById('newVendorInput');
+
+    // 狀態變數
+    let customVendors = [];   // 使用者自訂的廠商
+    let selectedVendors = []; // 目前被勾選的廠商名稱
+
+    // ==========================================
+    // 2. 程式啟動邏輯 (讀取與初始化)
+    // ==========================================
+    window.onload = function() {
+        initDate();        // 1. 設定日期
+        loadData();        // 2. 讀取存檔 (自訂廠商 + 勾選狀態)
+        renderVendors();   // 3. 畫出畫面
+        updateMessage();   // 4. 更新文字
+    };
+
+    // 初始化日期 (預設明天)
+    function initDate() {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        
+        // 這裡先設定 input 的值
+        datePicker.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // ==========================================
+    // 3. 資料儲存與讀取邏輯 (LocalStorage)
+    // ==========================================
+    
+    function loadData() {
+        // A. 讀取自訂廠商名單
+        const savedCustom = localStorage.getItem('custom_vendors');
+        if (savedCustom) {
+            customVendors = JSON.parse(savedCustom);
+        }
+
+        // B. 讀取上次勾選狀態 (含隔日清除邏輯)
+        const savedDate = localStorage.getItem('saved_date');
+        const savedSelection = localStorage.getItem('selected_vendors');
+        const currentDate = datePicker.value; // 剛剛算出來的「明天」
+
+        // 邏輯：如果「存檔的日期」跟「現在算出來的日期」一樣，代表是同一天的工作，就載入勾選
+        // 如果不一樣 (代表過了一天，或者換日了)，就不載入勾選 (等同於清除)
+        if (savedDate === currentDate && savedSelection) {
+            selectedVendors = JSON.parse(savedSelection);
+        } else {
+            selectedVendors = []; // 不同天，清空勾選
+            // 更新存檔日期為今天顯示的日期
+            localStorage.setItem('saved_date', currentDate);
+            localStorage.setItem('selected_vendors', JSON.stringify([]));
+        }
+    }
+
+    function saveData() {
+        // 1. 儲存自訂廠商清單
+        localStorage.setItem('custom_vendors', JSON.stringify(customVendors));
+        
+        // 2. 儲存目前的勾選狀態與日期
+        localStorage.setItem('saved_date', datePicker.value);
+        localStorage.setItem('selected_vendors', JSON.stringify(selectedVendors));
+    }
+
+    // ==========================================
+    // 4. 渲染與互動邏輯
+    // ==========================================
+
+    // 畫出所有廠商按鈕
+    function renderVendors() {
+        vendorContainer.innerHTML = '';
+        
+        // 合併預設和自訂名單
+        const allVendors = [...defaultVendors, ...customVendors];
+
+        allVendors.forEach((name, index) => {
+            // 檢查是否在已選名單中
+            const isChecked = selectedVendors.includes(name) ? 'checked' : '';
+            
+            // 判斷是否為自訂廠商 (用來決定要不要顯示刪除小按鈕)
+            const isCustom = index >= defaultVendors.length;
+            const deleteBtnHtml = isCustom 
+                ? `<span class="delete-btn" onclick="removeCustomVendor('${name}'); event.preventDefault();">✕</span>` 
+                : '';
+
+            const html = `
+                <div class="vendor-item">
+                    <input type="checkbox" id="v_${index}" value="${name}" ${isChecked} onchange="toggleVendor('${name}')">
+                    <label for="v_${index}">
+                        ${name}
+                        ${deleteBtnHtml}
+                    </label>
+                </div>
+            `;
+            vendorContainer.insertAdjacentHTML('beforeend', html);
+        });
+    }
+
+    // 勾選/取消勾選
+    window.toggleVendor = function(name) {
+        const idx = selectedVendors.indexOf(name);
+        if (idx > -1) {
+            selectedVendors.splice(idx, 1); // 移除
+        } else {
+            selectedVendors.push(name); // 新增
+        }
+        saveData(); // 立即存檔
+        updateMessage();
+    }
+
+    // 新增自訂廠商
+    window.addNewVendor = function() {
+        const name = newVendorInput.value.trim();
+        if (!name) return;
+        
+        if (defaultVendors.includes(name) || customVendors.includes(name)) {
+            showToast("廠商已存在！");
+            return;
+        }
+
+        customVendors.push(name);
+        newVendorInput.value = '';
+        
+        saveData();
+        renderVendors();
+        // 自動幫忙勾選剛新增的
+        // toggleVendor(name); // 如果不想自動勾選，這行註解掉
+    }
+
+    // 移除自訂廠商
+    window.removeCustomVendor = function(name) {
+        // 防止觸發 checkbox
+        event.stopPropagation(); 
+        
+        if(confirm(`確定要刪除「${name}」嗎？`)) {
+            // 從自訂名單移除
+            customVendors = customVendors.filter(v => v !== name);
+            // 如果原本有勾選，也要移除
+            selectedVendors = selectedVendors.filter(v => v !== name);
+            
+            saveData();
+            renderVendors();
+            updateMessage();
+        }
+    }
+
+    // 一鍵清除選取
+    window.clearSelection = function() {
+        selectedVendors = [];
+        
+        // 視覺上取消所有 checkbox
+        const checkboxes = document.querySelectorAll('.vendor-list input[type="checkbox"]');
+        checkboxes.forEach(box => box.checked = false);
+        
+        saveData();
+        updateMessage();
+        showToast("已清除所有勾選");
+    }
+
+    // 監聽日期變更
+    datePicker.addEventListener('change', function() {
+        // 日期變更時，我們選擇「不」自動清除勾選，
+        // 讓使用者可以方便地選好後改日期，或者改日期後補選。
+        // 但要更新存檔日期，避免重整後被當作「隔天」清掉
+        localStorage.setItem('saved_date', datePicker.value);
+        updateMessage();
+    });
+
+    // 取得星期幾
+    function getDayName(dateString) {
+        const days = ['日', '一', '二', '三', '四', '五', '六'];
+        const d = new Date(dateString);
+        return days[d.getDay()];
+    }
+
+    // 更新訊息內容
+    function updateMessage() {
+        const dateVal = datePicker.value;
+        const dayName = getDayName(dateVal);
+        
+        const vendorText = selectedVendors.length > 0 ? selectedVendors.join('\n- ') : '無';
+
+        const finalMessage = `【進貨通知】\n日期：${dateVal} (週${dayName})\n\n預計進貨廠商：\n- ${vendorText}\n\n請相關人員留意收貨。`;
+
+        messageOutput.value = finalMessage;
+    }
+
+    // 複製功能
+    window.copyText = function() {
+        messageOutput.select();
+        messageOutput.setSelectionRange(0, 99999);
+        
+        try {
+            navigator.clipboard.writeText(messageOutput.value).then(() => {
+                showToast("已複製到剪貼簿！");
+            });
+        } catch (err) {
+            document.execCommand("copy");
+            showToast("已複製！");
+        }
+    }
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        toast.innerText = msg;
+        toast.style.opacity = 1;
+        setTimeout(() => {
+            toast.style.opacity = 0;
+        }, 2000);
+    }
+</script>
+
+</body>
+</html>
