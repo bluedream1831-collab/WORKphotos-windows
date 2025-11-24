@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>薪資加班費計算器 (V10.0 勞基法版)</title>
+    <title>薪資加班費計算器 (V10.1)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -102,6 +102,7 @@
             align-items: center;
             margin-bottom: 12px;
             gap: 10px;
+            flex-wrap: wrap; 
         }
 
         label {
@@ -110,10 +111,10 @@
             color: #3a3a3c;
             font-size: 0.95em;
             display: flex;
-            flex-direction: column; /* 讓動態費率文字換行顯示 */
+            flex-direction: column; 
         }
 
-        /* 動態費率標籤樣式 */
+        /* 動態費率標籤 */
         .rate-badge {
             font-size: 0.8em;
             font-weight: normal;
@@ -173,6 +174,37 @@
             margin-bottom: 8px;
         }
 
+        /* V10.1 新增：公式說明區塊樣式 */
+        .formula-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.9em;
+            color: #555;
+        }
+        .formula-list li {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .formula-list li:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .formula-highlight {
+            color: #d32f2f;
+            font-weight: bold;
+            background-color: #ffebee;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .formula-note {
+            font-size: 0.85em;
+            color: #888;
+            margin-top: 4px;
+            display: block;
+        }
+
         details {
             background-color: #ffffff;
             border: 1px solid #e5e5ea;
@@ -214,7 +246,7 @@
         .result-area {
             margin-top: 30px;
             padding: 20px;
-            background: #fff8f8; /* 稍微換個底色區隔 */
+            background: #fff8f8;
             border: 1px solid #ffccd5;
             border-radius: 12px;
             text-align: center;
@@ -260,7 +292,7 @@
 <body>
     
     <div class="calculator-container">
-        <h1>勞基法加班費計算器 (V10.0)</h1>
+        <h1>勞基法加班費計算器 (V10.1)</h1>
         
         <!-- 隱私宣告 -->
         <div class="privacy-notice">
@@ -307,7 +339,7 @@
             <span>元</span>
         </div>
 
-        <!-- V10.0 新增：即時基礎時薪顯示面板 -->
+        <!-- 即時基礎時薪顯示面板 -->
         <div class="summary-panel">
             <div class="summary-row main">
                 <span>月薪總額 (含津貼/獎金)</span>
@@ -321,6 +353,31 @@
                 * 所有加班費將以此時薪為基準乘算倍率
             </div>
         </div>
+
+        <!-- V10.1 新增：計算公式說明 -->
+        <details>
+            <summary>📘 點此查看：勞基法計算公式說明</summary>
+            <div class="details-content">
+                <ul class="formula-list">
+                    <li>
+                        <strong>1. 基礎時薪 (平日每小時工資)</strong><br>
+                        計算式：<span class="formula-highlight">月薪總額 ÷ 240</span>
+                        <span class="formula-note">註：240 為勞動部規定之月工時推算基數 (30天 × 8小時)。月薪總額包含本俸、津貼及固定發放之獎金。</span>
+                    </li>
+                    <li>
+                        <strong>2. 平日加班費率</strong><br>
+                        前2小時：<span class="formula-highlight">時薪 × 1.34 (4/3)</span><br>
+                        第3小時起：<span class="formula-highlight">時薪 × 1.67 (5/3)</span>
+                    </li>
+                    <li>
+                        <strong>3. 休息日加班費率 (週六)</strong><br>
+                        前2小時：<span class="formula-highlight">時薪 × 1.34 (4/3)</span><br>
+                        第3-8小時：<span class="formula-highlight">時薪 × 1.67 (5/3)</span><br>
+                        第9小時起：<span class="formula-highlight">時薪 × 2.67 (8/3)</span>
+                    </li>
+                </ul>
+            </div>
+        </details>
         
         <!-- 加班時數輸入區 -->
         <div class="section-header">
@@ -432,8 +489,7 @@
     </div>
 
     <script>
-        // V10.0: 移除固定費率，改用動態計算
-        // 勞基法倍率係數
+        // V10.1: 勞基法倍率係數
         const MULTIPLIERS = {
             RATE_134: 4/3, // 1.3333...
             RATE_167: 5/3, // 1.6666...
@@ -576,26 +632,4 @@
 
         function loadData() {
             const savedData = localStorage.getItem(STORAGE_KEY);
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                inputIds.forEach(id => {
-                    if (data[id] !== undefined && data[id] !== "") {
-                        document.getElementById(id).value = data[id];
-                    }
-                });
-                if (data['countHolidayInLimit'] !== undefined) {
-                    document.getElementById('countHolidayInLimit').checked = data['countHolidayInLimit'];
-                }
-            }
-        }
-
-        inputIds.forEach(id => document.getElementById(id).addEventListener('input', calculate));
-        document.getElementById('countHolidayInLimit').addEventListener('change', calculate);
-
-        window.onload = function() {
-            loadData();
-            calculate();
-        };
-    </script>
-</body>
-</html>
+            if (s
