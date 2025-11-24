@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的專屬加班費計算器 (V2.1)</title>
+    <title>我的專屬加班費計算器 (V3.0)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -36,7 +36,7 @@
             color: #0056b3;
             border-bottom: 2px solid #b3e0ff;
             padding-bottom: 5px;
-            margin-top: 20px;
+            margin-top: 25px;
         }
 
         h3 {
@@ -56,13 +56,14 @@
         .input-group {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             gap: 10px;
         }
 
         label {
             flex-basis: 60%;
             font-weight: bold;
+            color: #444;
         }
 
         input[type="number"] {
@@ -84,7 +85,13 @@
             color: #888;
             flex-basis: 100%;
             margin-top: 5px;
-            margin-left: 60%;
+            margin-left: 0;
+            text-align: center;
+        }
+
+        .variable-highlight {
+            background-color: #fff8e1; /* 淡黃色背景強調浮動欄位 */
+            border: 1px solid #ffe082 !important;
         }
 
         button {
@@ -127,10 +134,12 @@
         }
         
         .monthly-pay-display {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: bold;
             color: #0056b3;
             margin-top: 10px;
+            border-top: 1px dashed #b3e0ff;
+            padding-top: 10px;
         }
     </style>
 </head>
@@ -138,27 +147,38 @@
     
     <div class="calculator-container">
         <h1>🛠️ 薪資與加班費計算器</h1>
-        <p class="rate-note">V2.1 自動記憶版：輸入後自動保存</p>
+        <p class="rate-note">V3.0 (新增津貼與獎金欄位)</p>
 
-        <h2>基本薪資結構</h2>
+        <h2>💰 月薪結構 (固定 + 浮動)</h2>
         <div class="input-group">
-            <label for="baseSalary">本薪 (Line 1)</label>
+            <label for="baseSalary">本俸</label>
             <input type="number" id="baseSalary" value="37026" min="0">
             <span>元</span>
         </div>
         <div class="input-group">
-            <label for="mealAllowance">餐費 (Line 2)</label>
-            <input type="number" id="mealAllowance" value="1000" min="0">
+            <label for="mealAllowance">伙食津貼</label>
+            <input type="number" id="mealAllowance" value="3000" min="0">
             <span>元</span>
         </div>
         <div class="input-group">
-            <label for="fullAttendance">全勤津貼 (Line 4)</label>
-            <input type="number" id="fullAttendance" value="3000" min="0">
+            <label for="transportAllowance">交通津貼</label>
+            <input type="number" id="transportAllowance" value="1000" min="0">
             <span>元</span>
         </div>
+        <div class="input-group">
+            <label for="freezerAllowance">冷凍津貼</label>
+            <input type="number" id="freezerAllowance" value="4000" min="0">
+            <span>元</span>
+        </div>
+        <div class="input-group">
+            <label for="pickingBonus" style="color: #e67e22;">理貨獎金 (浮動)</label>
+            <input type="number" id="pickingBonus" value="2000" min="0" class="variable-highlight">
+            <span>元</span>
+        </div>
+        <div class="note">* 理貨獎金不固定，請依當月實際狀況輸入 (2000~3000)</div>
         
-        <hr>
-        <h2>加班費時數輸入</h2>
+        <hr style="margin-top: 20px;">
+        <h2>⏱️ 加班時數輸入</h2>
         
         <h3>💼 平日加班 (平日延長工時)</h3>
         <div class="input-group">
@@ -196,26 +216,23 @@
             <input type="number" id="holidayOT" value="0" min="0">
             <span>小時</span>
         </div>
-        <div class="input-group">
-            <span class="note"> * 此項目為換休時數，不計入現金加班費總額。</span>
-        </div>
 
-        <!-- 按鈕保留，但其實輸入數字即會自動計算 -->
+        <!-- 按鈕 -->
         <button onclick="calculateOT()">重新整理/計算</button>
 
         <div class="result-area">
-            <h2>💵 月薪總額 + 加班費總額</h2>
+            <h2>💵 本月預估總收入</h2>
             <p id="totalIncome">0 元</p>
             
             <div class="monthly-pay-display">
-                <span style="color:#0056b3;">基本月薪總額：</span>
+                <span style="color:#0056b3;">月薪結構總額：</span>
                 <span id="monthlyBasePay">0 元</span>
             </div>
 
-            <h3 style="color:#d9534f;">💰 總現金加班費</h3>
+            <h3 style="color:#d9534f;">💰 加班費總額</h3>
             <p id="totalPay" style="font-size:1.5em; margin-bottom: 5px;">0 元</p>
             
-            <h3>⏳ 總計薪時數</h3>
+            <h3>⏳ 加班總時數</h3>
             <p id="totalHours" style="font-size:1.5em; color: #5cb85c;">0 小時</p>
         </div>
     </div>
@@ -228,22 +245,24 @@
             HOLIDAY_OT: 0 // 換休
         };
 
-        // 所有輸入欄位的 ID 列表
+        // 所有輸入欄位的 ID 列表 (已更新為新版結構)
         const inputIds = [
-            'baseSalary', 'mealAllowance', 'fullAttendance',
+            'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus',
             'normalOT1', 'normalOT2',
             'dayOffOT1', 'dayOffOT2', 'dayOffOT3',
             'holidayOT'
         ];
 
         function calculateOT() {
-            // A. 取得基本薪資輸入值
+            // A. 取得月薪結構輸入值
             const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
             const mealAllowance = parseFloat(document.getElementById('mealAllowance').value) || 0;
-            const fullAttendance = parseFloat(document.getElementById('fullAttendance').value) || 0;
+            const transportAllowance = parseFloat(document.getElementById('transportAllowance').value) || 0;
+            const freezerAllowance = parseFloat(document.getElementById('freezerAllowance').value) || 0;
+            const pickingBonus = parseFloat(document.getElementById('pickingBonus').value) || 0;
             
-            // 計算基本月薪總額
-            const monthlyBasePay = Math.round(baseSalary + mealAllowance + fullAttendance);
+            // 計算月薪結構總額
+            const monthlyBasePay = Math.round(baseSalary + mealAllowance + transportAllowance + freezerAllowance + pickingBonus);
 
             // B. 取得加班時數輸入值
             const normalOT1 = parseFloat(document.getElementById('normalOT1').value) || 0;
@@ -253,7 +272,7 @@
             const dayOffOT3 = parseFloat(document.getElementById('dayOffOT3').value) || 0;
             const holidayOT = parseFloat(document.getElementById('holidayOT').value) || 0; 
             
-            // C. 計算總現金加班費
+            // C. 計算總現金加班費 (費率固定)
             const payNormalOT = (normalOT1 * RATES.NORMAL_OT_1) + (normalOT2 * RATES.NORMAL_OT_2);
             const payDayOffOT = (dayOffOT1 * RATES.DAY_OFF_OT_1) + 
                                 (dayOffOT2 * RATES.DAY_OFF_OT_2) +
@@ -262,10 +281,10 @@
 
             const totalPay = Math.round(payNormalOT + payDayOffOT + payHolidayOT);
             
-            // D. 計算總收入
+            // D. 計算總收入 (月薪 + 加班費)
             const totalIncome = monthlyBasePay + totalPay;
 
-            // E. 計算總計薪時數
+            // E. 計算總加班時數
             const totalHours = normalOT1 + normalOT2 + dayOffOT1 + dayOffOT2 + dayOffOT3;
             
             // F. 顯示結果
@@ -278,18 +297,18 @@
             saveData();
         }
 
-        // 儲存數據到 LocalStorage
+        // 儲存數據到 LocalStorage (使用新的 Key 避免與舊版衝突)
         function saveData() {
             const data = {};
             inputIds.forEach(id => {
                 data[id] = document.getElementById(id).value;
             });
-            localStorage.setItem('mySalaryCalcData_V2', JSON.stringify(data));
+            localStorage.setItem('mySalaryCalcData_V3', JSON.stringify(data));
         }
 
         // 載入數據
         function loadData() {
-            const savedData = localStorage.getItem('mySalaryCalcData_V2');
+            const savedData = localStorage.getItem('mySalaryCalcData_V3');
             if (savedData) {
                 const data = JSON.parse(savedData);
                 inputIds.forEach(id => {
@@ -307,7 +326,7 @@
         
         // 頁面載入時執行
         window.onload = function() {
-            loadData();    // 先載入舊資料
+            loadData();    // 先載入資料
             calculateOT(); // 再計算一次
         };
     </script>
