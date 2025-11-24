@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的專屬加班費計算器</title>
-    
+    <title>我的專屬加班費計算器 (V2.1)</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -32,19 +31,26 @@
             text-align: center;
             margin-bottom: 5px;
         }
+        
+        h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #b3e0ff;
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
+
+        h3 {
+            color: #38a700;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 5px;
+            margin-top: 20px;
+        }
 
         p.rate-note {
             text-align: center;
             color: #555;
             margin-bottom: 20px;
             font-size: 0.9em;
-        }
-
-        h2, h3 {
-            color: #38a700;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 5px;
-            margin-top: 20px;
         }
 
         .input-group {
@@ -90,7 +96,7 @@
             border-radius: 8px;
             font-size: 18px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
             transition: background-color 0.3s;
         }
 
@@ -119,42 +125,64 @@
             color: #5cb85c;
             margin: 5px 0;
         }
+        
+        .monthly-pay-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #0056b3;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     
     <div class="calculator-container">
-        <h1>🛠️ 加班費計算器</h1>
-        <p class="rate-note">（根據您的表格費率設計：$270 / $337 / $540）</p>
+        <h1>🛠️ 薪資與加班費計算器</h1>
+        <p class="rate-note">V2.1 自動記憶版：輸入後自動保存</p>
 
+        <h2>基本薪資結構</h2>
+        <div class="input-group">
+            <label for="baseSalary">本薪 (Line 1)</label>
+            <input type="number" id="baseSalary" value="37026" min="0">
+            <span>元</span>
+        </div>
+        <div class="input-group">
+            <label for="mealAllowance">餐費 (Line 2)</label>
+            <input type="number" id="mealAllowance" value="1000" min="0">
+            <span>元</span>
+        </div>
+        <div class="input-group">
+            <label for="fullAttendance">全勤津貼 (Line 4)</label>
+            <input type="number" id="fullAttendance" value="3000" min="0">
+            <span>元</span>
+        </div>
+        
         <hr>
-        <h2>💼 平日加班 (平日延長工時)</h2>
+        <h2>加班費時數輸入</h2>
+        
+        <h3>💼 平日加班 (平日延長工時)</h3>
         <div class="input-group">
             <label for="normalOT1">前2小時 ($270/時)</label>
             <input type="number" id="normalOT1" value="0" min="0">
             <span>小時</span>
         </div>
-
         <div class="input-group">
             <label for="normalOT2">第3小時起 ($337/時)</label>
             <input type="number" id="normalOT2" value="0" min="0">
             <span>小時</span>
         </div>
         
-        <hr>
-        <h2>🗓️ 休息日加班 (週休二日制之休息日)</h2>
+        <h3>🗓️ 休息日加班</h3>
         <div class="input-group">
             <label for="dayOffOT1">前2小時 ($270/時)</label>
             <input type="number" id="dayOffOT1" value="0" min="0">
             <span>小時</span>
         </div>
-        
         <div class="input-group">
             <label for="dayOffOT2">第3-8小時 ($337/時)</label>
             <input type="number" id="dayOffOT2" value="0" min="0">
             <span>小時</span>
         </div>
-
         <div class="input-group">
             <label for="dayOffOT3">第9小時起 ($540/時)</label>
             <input type="number" id="dayOffOT3" value="0" min="0">
@@ -162,8 +190,7 @@
         </div>
         
         <hr>
-        
-        <h2>🎉 國定/例假日/天災加班 (換休)</h2>
+        <h3>🎉 國定/例假日/天災加班</h3>
         <div class="input-group">
             <label for="holidayOT">換休時數 (1:1)</label>
             <input type="number" id="holidayOT" value="0" min="0">
@@ -173,36 +200,52 @@
             <span class="note"> * 此項目為換休時數，不計入現金加班費總額。</span>
         </div>
 
-
-        <button onclick="calculateOT()">計算加班費</button>
+        <!-- 按鈕保留，但其實輸入數字即會自動計算 -->
+        <button onclick="calculateOT()">重新整理/計算</button>
 
         <div class="result-area">
-            <h2>💰 總現金加班費預估</h2>
-            <p id="totalPay">0 元</p>
+            <h2>💵 月薪總額 + 加班費總額</h2>
+            <p id="totalIncome">0 元</p>
+            
+            <div class="monthly-pay-display">
+                <span style="color:#0056b3;">基本月薪總額：</span>
+                <span id="monthlyBasePay">0 元</span>
+            </div>
+
+            <h3 style="color:#d9534f;">💰 總現金加班費</h3>
+            <p id="totalPay" style="font-size:1.5em; margin-bottom: 5px;">0 元</p>
+            
             <h3>⏳ 總計薪時數</h3>
-            <p id="totalHours">0 小時</p>
+            <p id="totalHours" style="font-size:1.5em; color: #5cb85c;">0 小時</p>
         </div>
     </div>
 
     <script>
-        // 根據您的 Excel 表格，設定固定的小時費率
+        // 固定的加班費率
         const RATES = {
-            // 平日 OT (4/3 倍率)
-            NORMAL_OT_1: 270, 
-            // 平日 OT (5/3 倍率)
-            NORMAL_OT_2: 337,
-            // 休息日 OT (前2小時，依據您表格的 270 元)
-            DAY_OFF_OT_1: 270, 
-            // 休息日 OT (第3-8小時，依據您表格的 337 元)
-            DAY_OFF_OT_2: 337, 
-            // 休息日 OT (第9小時起，依據您表格的 540 元)
-            DAY_OFF_OT_3: 540,
-            // 國定/例假日 (換休，現金費率為 0)
-            HOLIDAY_OT: 0 
+            NORMAL_OT_1: 270, NORMAL_OT_2: 337,
+            DAY_OFF_OT_1: 270, DAY_OFF_OT_2: 337, DAY_OFF_OT_3: 540,
+            HOLIDAY_OT: 0 // 換休
         };
 
+        // 所有輸入欄位的 ID 列表
+        const inputIds = [
+            'baseSalary', 'mealAllowance', 'fullAttendance',
+            'normalOT1', 'normalOT2',
+            'dayOffOT1', 'dayOffOT2', 'dayOffOT3',
+            'holidayOT'
+        ];
+
         function calculateOT() {
-            // 1. 取得所有輸入值，並確保轉換為數字，若為空則為 0
+            // A. 取得基本薪資輸入值
+            const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
+            const mealAllowance = parseFloat(document.getElementById('mealAllowance').value) || 0;
+            const fullAttendance = parseFloat(document.getElementById('fullAttendance').value) || 0;
+            
+            // 計算基本月薪總額
+            const monthlyBasePay = Math.round(baseSalary + mealAllowance + fullAttendance);
+
+            // B. 取得加班時數輸入值
             const normalOT1 = parseFloat(document.getElementById('normalOT1').value) || 0;
             const normalOT2 = parseFloat(document.getElementById('normalOT2').value) || 0;
             const dayOffOT1 = parseFloat(document.getElementById('dayOffOT1').value) || 0;
@@ -210,38 +253,63 @@
             const dayOffOT3 = parseFloat(document.getElementById('dayOffOT3').value) || 0;
             const holidayOT = parseFloat(document.getElementById('holidayOT').value) || 0; 
             
-            // 2. 計算各項目的加班費用
-            
-            // 平日 OT 費用
+            // C. 計算總現金加班費
             const payNormalOT = (normalOT1 * RATES.NORMAL_OT_1) + (normalOT2 * RATES.NORMAL_OT_2);
-            
-            // 休息日 OT 費用 (直接使用您表格的費率)
             const payDayOffOT = (dayOffOT1 * RATES.DAY_OFF_OT_1) + 
                                 (dayOffOT2 * RATES.DAY_OFF_OT_2) +
                                 (dayOffOT3 * RATES.DAY_OFF_OT_3);
-
-            // 國定/例假日 OT 費用 (設定為 0，因為您表格顯示換休)
             const payHolidayOT = holidayOT * RATES.HOLIDAY_OT; 
 
-            // 總現金加班費 (四捨五入到整數)
-            const totalPay = payNormalOT + payDayOffOT + payHolidayOT;
+            const totalPay = Math.round(payNormalOT + payDayOffOT + payHolidayOT);
+            
+            // D. 計算總收入
+            const totalIncome = monthlyBasePay + totalPay;
 
-            // 3. 計算總計薪時數 (換休時數不計入現金，但計入總工時追蹤)
+            // E. 計算總計薪時數
             const totalHours = normalOT1 + normalOT2 + dayOffOT1 + dayOffOT2 + dayOffOT3;
             
-            // 4. 顯示結果到網頁上
-            document.getElementById('totalPay').innerText = `${Math.round(totalPay).toLocaleString()} 元`;
-            // 時數保留一位小數
+            // F. 顯示結果
+            document.getElementById('monthlyBasePay').innerText = `${monthlyBasePay.toLocaleString()} 元`;
+            document.getElementById('totalPay').innerText = `${totalPay.toLocaleString()} 元`;
+            document.getElementById('totalIncome').innerText = `${totalIncome.toLocaleString()} 元`;
             document.getElementById('totalHours').innerText = `${totalHours.toFixed(1)} 小時`;
 
-            // 5. 若有換休，提供一個彈窗提醒
-            if (holidayOT > 0) {
-                const alertMessage = `提醒：您有 ${holidayOT.toFixed(1)} 小時的國定/例假日加班。此時數已設定為換休 (1:1)，因此未計入現金加班費總計。`;
-                // 您可以選擇移除這個 alert，或用更美觀的方式顯示在頁面上
-                console.log(alertMessage); 
+            // 儲存數據
+            saveData();
+        }
+
+        // 儲存數據到 LocalStorage
+        function saveData() {
+            const data = {};
+            inputIds.forEach(id => {
+                data[id] = document.getElementById(id).value;
+            });
+            localStorage.setItem('mySalaryCalcData_V2', JSON.stringify(data));
+        }
+
+        // 載入數據
+        function loadData() {
+            const savedData = localStorage.getItem('mySalaryCalcData_V2');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                inputIds.forEach(id => {
+                    if (data[id] !== undefined) {
+                        document.getElementById(id).value = data[id];
+                    }
+                });
             }
         }
+
+        // 監聽所有輸入框，數值改變時即時計算
+        inputIds.forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateOT);
+        });
+        
+        // 頁面載入時執行
+        window.onload = function() {
+            loadData();    // 先載入舊資料
+            calculateOT(); // 再計算一次
+        };
     </script>
 </body>
 </html>
-
