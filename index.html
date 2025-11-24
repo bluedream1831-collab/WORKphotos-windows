@@ -3,54 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的專屬加班費計算器 (V3.0)</title>
+    <title>薪資加班費計算器 (V10.0 勞基法版)</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f2f2f7;
             color: #333;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .calculator-container {
             background: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             width: 100%;
             max-width: 500px;
+            margin-bottom: 20px;
         }
 
         h1 {
-            color: #007bff;
+            color: #007aff;
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        
+        /* 隱私宣告 */
+        .privacy-notice {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            text-align: center;
+            margin-bottom: 10px;
+            border: 1px solid #c8e6c9;
+        }
+
+        /* 週期提醒 */
+        .cycle-notice {
+            background-color: #fff3e0;
+            color: #ef6c00;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            text-align: center;
+            margin-bottom: 25px;
+            border: 1px solid #ffe0b2;
+            font-weight: bold;
+            line-height: 1.5;
         }
         
         h2 {
-            color: #0056b3;
-            border-bottom: 2px solid #b3e0ff;
-            padding-bottom: 5px;
-            margin-top: 25px;
+            color: #1c1c1e;
+            font-size: 1.2em;
+            font-weight: 700;
+            margin: 0;
         }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f2f2f7;
+        }
+
+        .btn-clear {
+            background-color: #ff3b30;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-clear:hover { opacity: 0.8; }
 
         h3 {
-            color: #38a700;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 5px;
+            color: #34c759;
+            background-color: #f2fff4;
+            padding: 8px 12px;
+            border-radius: 8px;
             margin-top: 20px;
-        }
-
-        p.rate-note {
-            text-align: center;
-            color: #555;
-            margin-bottom: 20px;
-            font-size: 0.9em;
+            font-size: 1.05em;
         }
 
         .input-group {
@@ -61,98 +105,185 @@
         }
 
         label {
-            flex-basis: 60%;
-            font-weight: bold;
-            color: #444;
+            flex-basis: 55%;
+            font-weight: 600;
+            color: #3a3a3c;
+            font-size: 0.95em;
+            display: flex;
+            flex-direction: column; /* 讓動態費率文字換行顯示 */
+        }
+
+        /* 動態費率標籤樣式 */
+        .rate-badge {
+            font-size: 0.8em;
+            font-weight: normal;
+            color: #007aff;
+            background-color: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block;
+            width: fit-content;
         }
 
         input[type="number"] {
-            flex-basis: 25%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            flex-basis: 30%;
+            padding: 10px;
+            border: 1px solid #d1d1d6;
+            border-radius: 8px;
             text-align: right;
-            font-size: 16px;
+            font-size: 17px;
+            background-color: #fcfcfc;
         }
+        
+        input[type="number"]::placeholder { color: #c7c7cc; font-size: 0.85em; }
+        input[type="number"]:focus { border-color: #007aff; outline: none; background-color: #fff; }
 
         span {
-            flex-basis: 15%;
+            flex-basis: 10%;
             text-align: left;
-        }
-
-        .note {
-            font-size: 0.8em;
-            color: #888;
-            flex-basis: 100%;
-            margin-top: 5px;
-            margin-left: 0;
-            text-align: center;
+            font-size: 0.9em;
+            color: #8e8e93;
         }
 
         .variable-highlight {
-            background-color: #fff8e1; /* 淡黃色背景強調浮動欄位 */
-            border: 1px solid #ffe082 !important;
+            background-color: #fff9c4;
+            border: 1px solid #fbc02d !important;
         }
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 18px;
-            cursor: pointer;
+        /* 摘要面板 */
+        .summary-panel {
+            background-color: #f0f9ff;
+            border: 1px solid #b3e5fc;
+            border-radius: 10px;
+            padding: 15px;
             margin-top: 15px;
-            transition: background-color 0.3s;
+            font-size: 0.95em;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        .summary-row.main {
+            font-weight: bold;
+            color: #0277bd;
+            border-bottom: 1px solid #b3e5fc;
+            padding-bottom: 5px;
+            margin-bottom: 8px;
         }
 
-        button:hover {
-            background-color: #0056b3;
+        details {
+            background-color: #ffffff;
+            border: 1px solid #e5e5ea;
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
         }
+        summary {
+            padding: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #007aff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f9f9f9;
+            list-style: none;
+            font-size: 0.95em;
+        }
+        summary::after { content: '+'; font-size: 1.2em; }
+        details[open] summary::after { content: '-'; }
+        .details-content { padding: 15px; border-top: 1px solid #e5e5ea; font-size: 0.9em; color: #555; }
+        
+        .breakdown-table { width: 100%; font-size: 0.9em; border-collapse: collapse; }
+        .breakdown-table td { padding: 5px 0; }
+        .breakdown-table td:nth-child(2) { text-align: right; font-family: monospace; font-size: 1.1em; color: #ff3b30; }
+
+        .checkbox-container {
+            flex-basis: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-top: 8px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .checkbox-container input { margin-right: 8px; width: 20px; height: 20px; }
 
         .result-area {
-            margin-top: 25px;
-            padding: 15px;
-            background-color: #e9f7ff;
-            border: 1px solid #b3e0ff;
-            border-radius: 8px;
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff8f8; /* 稍微換個底色區隔 */
+            border: 1px solid #ffccd5;
+            border-radius: 12px;
             text-align: center;
         }
-
         .result-area p {
-            font-size: 2em;
-            font-weight: bold;
-            color: #d9534f;
-            margin: 10px 0 20px 0;
+            font-size: 2.5em;
+            font-weight: 800;
+            color: #d32f2f;
+            margin: 5px 0 15px 0;
         }
 
-        .result-area h3 + p {
-            font-size: 1.5em;
-            color: #5cb85c;
-            margin: 5px 0;
+        .total-hours-display {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: #fff;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
-        
-        .monthly-pay-display {
-            font-size: 1.1em;
+
+        .hours-check-section {
+            background-color: #fff;
+            border: 2px dashed #c7c7cc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .warning-text {
+            background-color: #ffebee;
+            color: #c62828;
             font-weight: bold;
-            color: #0056b3;
+            padding: 10px;
+            border-radius: 6px;
             margin-top: 10px;
-            border-top: 1px dashed #b3e0ff;
-            padding-top: 10px;
+            text-align: center;
+            display: none;
         }
     </style>
 </head>
 <body>
     
     <div class="calculator-container">
-        <h1>🛠️ 薪資與加班費計算器</h1>
-        <p class="rate-note">V3.0 (新增津貼與獎金欄位)</p>
+        <h1>勞基法加班費計算器 (V10.0)</h1>
+        
+        <!-- 隱私宣告 -->
+        <div class="privacy-notice">
+            🔒 資料僅儲存於您的手機/電腦中，不外流。
+        </div>
 
-        <h2>💰 月薪結構 (固定 + 浮動)</h2>
-        <div class="input-group">
+        <!-- 週期提醒 -->
+        <div class="cycle-notice">
+            📅 計薪週期提醒：<br>
+            上月21日 至 當月20日<br>
+            <span style="font-weight:normal; font-size:0.9em; display:block; margin-top:5px; color:#555;">
+                (每月20日後，請按下方「清空時數」重新計算)
+            </span>
+        </div>
+
+        <!-- 月薪輸入區 -->
+        <div class="section-header">
+            <h2>💰 月薪結構 (計算基礎)</h2>
+        </div>
+        
+        <div class="input-group" style="margin-top: 15px;">
             <label for="baseSalary">本俸</label>
-            <input type="number" id="baseSalary" value="37026" min="0">
+            <input type="number" id="baseSalary" placeholder="請填寫本俸" min="0">
             <span>元</span>
         </div>
         <div class="input-group">
@@ -171,163 +302,299 @@
             <span>元</span>
         </div>
         <div class="input-group">
-            <label for="pickingBonus" style="color: #e67e22;">理貨獎金 (浮動)</label>
-            <input type="number" id="pickingBonus" value="2000" min="0" class="variable-highlight">
+            <label for="pickingBonus" style="color: #f57c00;">理貨獎金 (變動)</label>
+            <input type="number" id="pickingBonus" value="3000" min="0" class="variable-highlight">
             <span>元</span>
         </div>
-        <div class="note">* 理貨獎金不固定，請依當月實際狀況輸入 (2000~3000)</div>
-        
-        <hr style="margin-top: 20px;">
-        <h2>⏱️ 加班時數輸入</h2>
-        
-        <h3>💼 平日加班 (平日延長工時)</h3>
-        <div class="input-group">
-            <label for="normalOT1">前2小時 ($270/時)</label>
-            <input type="number" id="normalOT1" value="0" min="0">
-            <span>小時</span>
-        </div>
-        <div class="input-group">
-            <label for="normalOT2">第3小時起 ($337/時)</label>
-            <input type="number" id="normalOT2" value="0" min="0">
-            <span>小時</span>
-        </div>
-        
-        <h3>🗓️ 休息日加班</h3>
-        <div class="input-group">
-            <label for="dayOffOT1">前2小時 ($270/時)</label>
-            <input type="number" id="dayOffOT1" value="0" min="0">
-            <span>小時</span>
-        </div>
-        <div class="input-group">
-            <label for="dayOffOT2">第3-8小時 ($337/時)</label>
-            <input type="number" id="dayOffOT2" value="0" min="0">
-            <span>小時</span>
-        </div>
-        <div class="input-group">
-            <label for="dayOffOT3">第9小時起 ($540/時)</label>
-            <input type="number" id="dayOffOT3" value="0" min="0">
-            <span>小時</span>
+
+        <!-- V10.0 新增：即時基礎時薪顯示面板 -->
+        <div class="summary-panel">
+            <div class="summary-row main">
+                <span>月薪總額 (含津貼/獎金)</span>
+                <span id="displayTotalBase">0 元</span>
+            </div>
+            <div class="summary-row">
+                <span>平日每小時工資 (÷240)</span>
+                <span id="displayHourlyRate" style="font-weight:bold; color:#d32f2f;">0 元</span>
+            </div>
+            <div style="font-size:0.8em; color:#666; margin-top:5px; text-align:right;">
+                * 所有加班費將以此時薪為基準乘算倍率
+            </div>
         </div>
         
-        <hr>
-        <h3>🎉 國定/例假日/天災加班</h3>
+        <!-- 加班時數輸入區 -->
+        <div class="section-header">
+            <h2>⏱️ 加班時數輸入</h2>
+            <button onclick="clearHours()" class="btn-clear">🗑️ 清空時數</button>
+        </div>
+        
+        <h3>💼 平日加班 (計入 46H)</h3>
         <div class="input-group">
-            <label for="holidayOT">換休時數 (1:1)</label>
-            <input type="number" id="holidayOT" value="0" min="0">
+            <label>
+                前2小時 (1.34倍)
+                <span id="rateLabel_134" class="rate-badge">目前 $0/時</span>
+            </label>
+            <input type="number" id="normalOT1" placeholder="0" min="0">
+            <span>小時</span>
+        </div>
+        <div class="input-group">
+            <label>
+                第3小時起 (1.67倍)
+                <span id="rateLabel_167" class="rate-badge">目前 $0/時</span>
+            </label>
+            <input type="number" id="normalOT2" placeholder="0" min="0">
+            <span>小時</span>
+        </div>
+        
+        <h3>🗓️ 休息日加班 (計入 46H)</h3>
+        <div class="input-group">
+            <label>
+                前2小時 (1.34倍)
+                <span id="rateLabel_dayOff1" class="rate-badge">目前 $0/時</span>
+            </label>
+            <input type="number" id="dayOffOT1" placeholder="0" min="0">
+            <span>小時</span>
+        </div>
+        <div class="input-group">
+            <label>
+                第3-8小時 (1.67倍)
+                <span id="rateLabel_dayOff2" class="rate-badge">目前 $0/時</span>
+            </label>
+            <input type="number" id="dayOffOT2" placeholder="0" min="0">
+            <span>小時</span>
+        </div>
+        <div class="input-group">
+            <label>
+                第9小時起 (2.67倍)
+                <span id="rateLabel_dayOff3" class="rate-badge">目前 $0/時</span>
+            </label>
+            <input type="number" id="dayOffOT3" placeholder="0" min="0">
+            <span>小時</span>
+        </div>
+        
+        <h3>🎉 特殊加班</h3>
+        <div class="input-group">
+            <label>國定假日 (換休)</label>
+            <input type="number" id="holidayOT" placeholder="0" min="0">
+            <span>小時</span>
+            <div class="checkbox-container">
+                <input type="checkbox" id="countHolidayInLimit">
+                <label for="countHolidayInLimit">勾選計入46H上限</label>
+            </div>
+        </div>
+        <div class="input-group" style="margin-top:10px;">
+            <label>天災/事變 (換休)</label>
+            <input type="number" id="disasterOT" placeholder="0" min="0">
             <span>小時</span>
         </div>
 
-        <!-- 按鈕 -->
-        <button onclick="calculateOT()">重新整理/計算</button>
-
+        <!-- 結果顯示 -->
         <div class="result-area">
-            <h2>💵 本月預估總收入</h2>
-            <p id="totalIncome">0 元</p>
-            
-            <div class="monthly-pay-display">
-                <span style="color:#0056b3;">月薪結構總額：</span>
-                <span id="monthlyBasePay">0 元</span>
+            <h2>💵 預估總收入</h2>
+
+            <div class="total-hours-display">
+                總加班時數：<span id="totalHoursAll" style="color:#007aff; font-weight:bold;">0</span> 小時
             </div>
 
-            <h3 style="color:#d9534f;">💰 加班費總額</h3>
-            <p id="totalPay" style="font-size:1.5em; margin-bottom: 5px;">0 元</p>
+            <p id="totalIncome">0 元</p>
             
-            <h3>⏳ 加班總時數</h3>
-            <p id="totalHours" style="font-size:1.5em; color: #5cb85c;">0 小時</p>
+            <div style="font-weight:bold; color:#555; text-align:center; font-size: 0.9em;">
+                基本月薪 <span id="monthlyBasePay" style="color:#007aff;">0</span>
+                + 加班費 <span id="totalPay" style="color:#ff3b30;">0</span>
+            </div>
+
+            <details>
+                <summary>🧮 查看詳細計算過程</summary>
+                <div class="details-content">
+                    <table class="breakdown-table">
+                        <tr><td>平日前2H (1.34)：</td><td id="bd_n1">0 x $0 = 0</td></tr>
+                        <tr><td>平日後續 (1.67)：</td><td id="bd_n2">0 x $0 = 0</td></tr>
+                        <tr><td>休息日前2H (1.34)：</td><td id="bd_d1">0 x $0 = 0</td></tr>
+                        <tr><td>休息日3-8H (1.67)：</td><td id="bd_d2">0 x $0 = 0</td></tr>
+                        <tr><td>休息日9H起 (2.67)：</td><td id="bd_d3">0 x $0 = 0</td></tr>
+                        <tr style="border-top: 1px solid #ccc;"><td><strong>加班費總計：</strong></td><td id="bd_total"><strong>0</strong></td></tr>
+                    </table>
+                </div>
+            </details>
+
+            <div class="hours-check-section">
+                <div class="check-row" style="border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-bottom: 10px;">
+                    <span>📜 46H 上限檢核：</span>
+                    <span class="check-value" id="remainingHours" style="color: #34c759;">剩餘 46.0 小時</span>
+                </div>
+                <div class="check-row" style="font-size: 0.9em; color:#666;">
+                    <span>已用受限時數：</span>
+                    <span id="usedLimitedHours">0 小時</span>
+                </div>
+                <div id="warningMessage" class="warning-text">⚠️ 注意：受限時數已爆表！</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 固定的加班費率
-        const RATES = {
-            NORMAL_OT_1: 270, NORMAL_OT_2: 337,
-            DAY_OFF_OT_1: 270, DAY_OFF_OT_2: 337, DAY_OFF_OT_3: 540,
-            HOLIDAY_OT: 0 // 換休
+        // V10.0: 移除固定費率，改用動態計算
+        // 勞基法倍率係數
+        const MULTIPLIERS = {
+            RATE_134: 4/3, // 1.3333...
+            RATE_167: 5/3, // 1.6666...
+            RATE_267: 8/3  // 2.6666...
         };
 
-        // 所有輸入欄位的 ID 列表 (已更新為新版結構)
         const inputIds = [
             'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus',
             'normalOT1', 'normalOT2',
             'dayOffOT1', 'dayOffOT2', 'dayOffOT3',
-            'holidayOT'
+            'holidayOT', 'disasterOT'
         ];
 
-        function calculateOT() {
-            // A. 取得月薪結構輸入值
+        const hourInputIds = [
+            'normalOT1', 'normalOT2',
+            'dayOffOT1', 'dayOffOT2', 'dayOffOT3',
+            'holidayOT', 'disasterOT'
+        ];
+
+        const STORAGE_KEY = 'salary_calc_personal_v10';
+
+        function calculate() {
+            // A. 計算月薪總額
             const baseSalary = parseFloat(document.getElementById('baseSalary').value) || 0;
             const mealAllowance = parseFloat(document.getElementById('mealAllowance').value) || 0;
             const transportAllowance = parseFloat(document.getElementById('transportAllowance').value) || 0;
             const freezerAllowance = parseFloat(document.getElementById('freezerAllowance').value) || 0;
             const pickingBonus = parseFloat(document.getElementById('pickingBonus').value) || 0;
             
-            // 計算月薪結構總額
-            const monthlyBasePay = Math.round(baseSalary + mealAllowance + transportAllowance + freezerAllowance + pickingBonus);
+            const monthlyTotal = Math.round(baseSalary + mealAllowance + transportAllowance + freezerAllowance + pickingBonus);
 
-            // B. 取得加班時數輸入值
-            const normalOT1 = parseFloat(document.getElementById('normalOT1').value) || 0;
-            const normalOT2 = parseFloat(document.getElementById('normalOT2').value) || 0;
-            const dayOffOT1 = parseFloat(document.getElementById('dayOffOT1').value) || 0;
-            const dayOffOT2 = parseFloat(document.getElementById('dayOffOT2').value) || 0;
-            const dayOffOT3 = parseFloat(document.getElementById('dayOffOT3').value) || 0;
-            const holidayOT = parseFloat(document.getElementById('holidayOT').value) || 0; 
-            
-            // C. 計算總現金加班費 (費率固定)
-            const payNormalOT = (normalOT1 * RATES.NORMAL_OT_1) + (normalOT2 * RATES.NORMAL_OT_2);
-            const payDayOffOT = (dayOffOT1 * RATES.DAY_OFF_OT_1) + 
-                                (dayOffOT2 * RATES.DAY_OFF_OT_2) +
-                                (dayOffOT3 * RATES.DAY_OFF_OT_3);
-            const payHolidayOT = holidayOT * RATES.HOLIDAY_OT; 
+            // B. 計算平日每小時工資 (勞基法：月薪 / 30 / 8 = 月薪 / 240)
+            const hourlyRateRaw = monthlyTotal / 240;
+            const hourlyRateDisplay = hourlyRateRaw.toFixed(2); // 顯示用，保留兩位
 
-            const totalPay = Math.round(payNormalOT + payDayOffOT + payHolidayOT);
-            
-            // D. 計算總收入 (月薪 + 加班費)
-            const totalIncome = monthlyBasePay + totalPay;
+            // C. 計算各階段加班費率 (四捨五入至整數)
+            const rate134 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_134);
+            const rate167 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_167);
+            const rate267 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_267);
 
-            // E. 計算總加班時數
-            const totalHours = normalOT1 + normalOT2 + dayOffOT1 + dayOffOT2 + dayOffOT3;
+            // 更新畫面上方的費率顯示
+            document.getElementById('displayTotalBase').innerText = `${monthlyTotal.toLocaleString()} 元`;
+            document.getElementById('displayHourlyRate').innerText = `${hourlyRateDisplay} 元`;
+
+            // 更新各輸入框旁的動態費率標籤
+            document.getElementById('rateLabel_134').innerText = `目前 $${rate134}/時`;
+            document.getElementById('rateLabel_167').innerText = `目前 $${rate167}/時`;
+            document.getElementById('rateLabel_dayOff1').innerText = `目前 $${rate134}/時`;
+            document.getElementById('rateLabel_dayOff2').innerText = `目前 $${rate167}/時`;
+            document.getElementById('rateLabel_dayOff3').innerText = `目前 $${rate267}/時`;
+
+            // D. 取得時數
+            const n1 = parseFloat(document.getElementById('normalOT1').value) || 0;
+            const n2 = parseFloat(document.getElementById('normalOT2').value) || 0;
+            const d1 = parseFloat(document.getElementById('dayOffOT1').value) || 0;
+            const d2 = parseFloat(document.getElementById('dayOffOT2').value) || 0;
+            const d3 = parseFloat(document.getElementById('dayOffOT3').value) || 0;
+            const hol = parseFloat(document.getElementById('holidayOT').value) || 0; 
+            const dis = parseFloat(document.getElementById('disasterOT').value) || 0;
+
+            const totalHoursAll = n1 + n2 + d1 + d2 + d3 + hol + dis;
+            document.getElementById('totalHoursAll').innerText = totalHoursAll.toFixed(1);
+
+            // E. 計算加班費總額
+            const p_n1 = n1 * rate134;
+            const p_n2 = n2 * rate167;
+            const p_d1 = d1 * rate134;
+            const p_d2 = d2 * rate167;
+            const p_d3 = d3 * rate267;
             
-            // F. 顯示結果
-            document.getElementById('monthlyBasePay').innerText = `${monthlyBasePay.toLocaleString()} 元`;
-            document.getElementById('totalPay').innerText = `${totalPay.toLocaleString()} 元`;
+            const totalOTPay = Math.round(p_n1 + p_n2 + p_d1 + p_d2 + p_d3);
+            const totalIncome = monthlyTotal + totalOTPay;
+
+            // F. 更新結果區
+            document.getElementById('monthlyBasePay').innerText = `${monthlyTotal.toLocaleString()} 元`;
+            document.getElementById('totalPay').innerText = `${totalOTPay.toLocaleString()} 元`;
             document.getElementById('totalIncome').innerText = `${totalIncome.toLocaleString()} 元`;
-            document.getElementById('totalHours').innerText = `${totalHours.toFixed(1)} 小時`;
 
-            // 儲存數據
+            // 更新詳細算式
+            updateBreakdown('bd_n1', n1, rate134, p_n1);
+            updateBreakdown('bd_n2', n2, rate167, p_n2);
+            updateBreakdown('bd_d1', d1, rate134, p_d1);
+            updateBreakdown('bd_d2', d2, rate167, p_d2);
+            updateBreakdown('bd_d3', d3, rate267, p_d3);
+            document.getElementById('bd_total').innerText = `$ ${totalOTPay.toLocaleString()}`;
+
+            // G. 46H 檢核
+            checkLaborLimit(n1, n2, d1, d2, d3, hol, dis);
+
             saveData();
         }
 
-        // 儲存數據到 LocalStorage (使用新的 Key 避免與舊版衝突)
-        function saveData() {
-            const data = {};
-            inputIds.forEach(id => {
-                data[id] = document.getElementById(id).value;
-            });
-            localStorage.setItem('mySalaryCalcData_V3', JSON.stringify(data));
-        }
-
-        // 載入數據
-        function loadData() {
-            const savedData = localStorage.getItem('mySalaryCalcData_V3');
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                inputIds.forEach(id => {
-                    if (data[id] !== undefined) {
-                        document.getElementById(id).value = data[id];
-                    }
+        function clearHours() {
+            if (confirm("確定要清空所有時數嗎？\n(每月20日後請執行此動作)")) {
+                hourInputIds.forEach(id => {
+                    document.getElementById(id).value = '';
                 });
+                calculate();
             }
         }
 
-        // 監聽所有輸入框，數值改變時即時計算
-        inputIds.forEach(id => {
-            document.getElementById(id).addEventListener('input', calculateOT);
-        });
-        
-        // 頁面載入時執行
+        function updateBreakdown(elementId, hours, rate, subtotal) {
+            const el = document.getElementById(elementId);
+            if (hours > 0) {
+                el.innerHTML = `${hours} <small>h</small> × $${rate} = <b>$${subtotal.toLocaleString()}</b>`;
+                el.style.color = '#333';
+            } else {
+                el.innerHTML = `<span style="color:#ccc">0 <small>h</small> × $${rate} = 0</span>`;
+            }
+        }
+
+        function checkLaborLimit(n1, n2, d1, d2, d3, hol, dis) {
+            let limited = n1 + n2 + d1 + d2 + d3;
+            if(document.getElementById('countHolidayInLimit').checked) {
+                limited += hol;
+            }
+            const remaining = 46 - limited;
+            
+            document.getElementById('usedLimitedHours').innerText = `${limited.toFixed(1)} 小時`;
+            const remEl = document.getElementById('remainingHours');
+            const warnEl = document.getElementById('warningMessage');
+
+            if (remaining >= 0) {
+                remEl.innerText = `剩餘 ${remaining.toFixed(1)} 小時`;
+                remEl.style.color = '#34c759';
+                warnEl.style.display = 'none';
+            } else {
+                remEl.innerText = `已超額 ${(Math.abs(remaining)).toFixed(1)} 小時`;
+                remEl.style.color = '#ff3b30';
+                warnEl.style.display = 'block';
+            }
+        }
+
+        function saveData() {
+            const data = {};
+            inputIds.forEach(id => data[id] = document.getElementById(id).value);
+            data['countHolidayInLimit'] = document.getElementById('countHolidayInLimit').checked;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem(STORAGE_KEY);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                inputIds.forEach(id => {
+                    if (data[id] !== undefined && data[id] !== "") {
+                        document.getElementById(id).value = data[id];
+                    }
+                });
+                if (data['countHolidayInLimit'] !== undefined) {
+                    document.getElementById('countHolidayInLimit').checked = data['countHolidayInLimit'];
+                }
+            }
+        }
+
+        inputIds.forEach(id => document.getElementById(id).addEventListener('input', calculate));
+        document.getElementById('countHolidayInLimit').addEventListener('change', calculate);
+
         window.onload = function() {
-            loadData();    // 先載入資料
-            calculateOT(); // 再計算一次
+            loadData();
+            calculate();
         };
     </script>
 </body>
