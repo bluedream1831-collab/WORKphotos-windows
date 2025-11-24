@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>薪資加班費計算器 (V10.1)</title>
+    <title>薪資加班費計算器 (V10.2)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -30,20 +30,33 @@
         h1 {
             color: #007aff;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             font-size: 1.5em;
         }
         
-        /* 隱私宣告 */
-        .privacy-notice {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.85em;
-            text-align: center;
-            margin-bottom: 10px;
-            border: 1px solid #c8e6c9;
+        /* V10.2 新增：功能與隱私宣告區塊 */
+        .feature-notice {
+            background-color: #e0f2f1; /* 淡青色背景 */
+            border: 1px solid #b2dfdb;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #00695c;
+        }
+        .notice-item {
+            margin-bottom: 8px;
+        }
+        .notice-item:last-child {
+            margin-bottom: 0;
+        }
+        .highlight-text {
+            font-weight: bold;
+            color: #004d40;
+            background-color: #b2dfdb;
+            padding: 0 4px;
+            border-radius: 3px;
         }
 
         /* 週期提醒 */
@@ -114,7 +127,6 @@
             flex-direction: column; 
         }
 
-        /* 動態費率標籤 */
         .rate-badge {
             font-size: 0.8em;
             font-weight: normal;
@@ -152,7 +164,6 @@
             border: 1px solid #fbc02d !important;
         }
 
-        /* 摘要面板 */
         .summary-panel {
             background-color: #f0f9ff;
             border: 1px solid #b3e5fc;
@@ -174,7 +185,7 @@
             margin-bottom: 8px;
         }
 
-        /* V10.1 新增：公式說明區塊樣式 */
+        /* 公式說明列表 */
         .formula-list {
             list-style-type: none;
             padding: 0;
@@ -292,11 +303,19 @@
 <body>
     
     <div class="calculator-container">
-        <h1>勞基法加班費計算器 (V10.1)</h1>
+        <h1>勞基法加班費計算器 (V10.2)</h1>
         
-        <!-- 隱私宣告 -->
-        <div class="privacy-notice">
-            🔒 資料僅儲存於您的手機/電腦中，不外流。
+        <!-- V10.2 自動記憶 & 隱私宣告 -->
+        <div class="feature-notice">
+            <div class="notice-item">
+                💾 <strong>自動記憶功能：</strong><br>
+                您輸入的資料會<span class="highlight-text">自動儲存</span>，下次開啟網頁時數字還在，不用重新輸入。
+            </div>
+            <div class="notice-item" style="margin-top:10px; border-top:1px dashed #b2dfdb; padding-top:10px;">
+                🔒 <strong>隱私安全保護：</strong><br>
+                所有資料僅儲存在<span class="highlight-text">您的手機/電腦</span>中，<br>
+                絕對不會上傳雲端，他人無法查看。
+            </div>
         </div>
 
         <!-- 週期提醒 -->
@@ -354,7 +373,7 @@
             </div>
         </div>
 
-        <!-- V10.1 新增：計算公式說明 -->
+        <!-- 公式說明 -->
         <details>
             <summary>📘 點此查看：勞基法計算公式說明</summary>
             <div class="details-content">
@@ -489,11 +508,11 @@
     </div>
 
     <script>
-        // V10.1: 勞基法倍率係數
+        // V10.2: 勞基法倍率係數
         const MULTIPLIERS = {
-            RATE_134: 4/3, // 1.3333...
-            RATE_167: 5/3, // 1.6666...
-            RATE_267: 8/3  // 2.6666...
+            RATE_134: 4/3, 
+            RATE_167: 5/3, 
+            RATE_267: 8/3  
         };
 
         const inputIds = [
@@ -521,20 +540,18 @@
             
             const monthlyTotal = Math.round(baseSalary + mealAllowance + transportAllowance + freezerAllowance + pickingBonus);
 
-            // B. 計算平日每小時工資 (勞基法：月薪 / 30 / 8 = 月薪 / 240)
+            // B. 計算平日每小時工資
             const hourlyRateRaw = monthlyTotal / 240;
-            const hourlyRateDisplay = hourlyRateRaw.toFixed(2); // 顯示用，保留兩位
+            const hourlyRateDisplay = hourlyRateRaw.toFixed(2);
 
-            // C. 計算各階段加班費率 (四捨五入至整數)
+            // C. 計算各階段加班費率
             const rate134 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_134);
             const rate167 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_167);
             const rate267 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_267);
 
-            // 更新畫面上方的費率顯示
             document.getElementById('displayTotalBase').innerText = `${monthlyTotal.toLocaleString()} 元`;
             document.getElementById('displayHourlyRate').innerText = `${hourlyRateDisplay} 元`;
 
-            // 更新各輸入框旁的動態費率標籤
             document.getElementById('rateLabel_134').innerText = `目前 $${rate134}/時`;
             document.getElementById('rateLabel_167').innerText = `目前 $${rate167}/時`;
             document.getElementById('rateLabel_dayOff1').innerText = `目前 $${rate134}/時`;
@@ -583,7 +600,7 @@
         }
 
         function clearHours() {
-            if (confirm("確定要清空所有時數嗎？\n(每月20日後請執行此動作)")) {
+            if (confirm("確定要清空所有時數嗎？\n(每月20日後請執行此動作，薪資設定將保留)")) {
                 hourInputIds.forEach(id => {
                     document.getElementById(id).value = '';
                 });
@@ -632,4 +649,26 @@
 
         function loadData() {
             const savedData = localStorage.getItem(STORAGE_KEY);
-            if (s
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                inputIds.forEach(id => {
+                    if (data[id] !== undefined && data[id] !== "") {
+                        document.getElementById(id).value = data[id];
+                    }
+                });
+                if (data['countHolidayInLimit'] !== undefined) {
+                    document.getElementById('countHolidayInLimit').checked = data['countHolidayInLimit'];
+                }
+            }
+        }
+
+        inputIds.forEach(id => document.getElementById(id).addEventListener('input', calculate));
+        document.getElementById('countHolidayInLimit').addEventListener('change', calculate);
+
+        window.onload = function() {
+            loadData();
+            calculate();
+        };
+    </script>
+</body>
+</html>
