@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>薪資加班費計算器 (V11.2)</title>
+    <title>薪資加班費計算器 (V12.0)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -35,7 +35,6 @@
             margin-top: 0;
         }
         
-        /* 緊湊型宣告區塊 */
         .notice-group {
             display: flex;
             gap: 8px;
@@ -57,9 +56,6 @@
             font-size: 1.1em;
             font-weight: 700;
             margin: 0;
-            padding-bottom: 5px;
-            border-bottom: 2px solid #f2f2f7;
-            margin-bottom: 10px;
         }
 
         .section-header {
@@ -72,17 +68,29 @@
             padding-bottom: 5px;
         }
 
-        .btn-clear {
-            background-color: #ff3b30;
-            color: white;
+        /* 按鈕樣式 */
+        .btn-small {
             border: none;
             padding: 4px 10px;
             border-radius: 12px;
             font-size: 0.8em;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-clear {
+            background-color: #ff3b30;
+            color: white;
+        }
+        /* 鎖定按鈕樣式 */
+        .btn-lock {
+            background-color: #e5e5ea;
+            color: #333;
+        }
+        .btn-lock.locked {
+            background-color: #34c759;
+            color: white;
         }
 
-        /* 格線系統 */
         .grid-row {
             display: flex;
             flex-wrap: wrap;
@@ -132,6 +140,14 @@
             text-align: right;
             font-size: 16px;
             background-color: #fcfcfc;
+            color: #333;
+        }
+        
+        /* 鎖定時的輸入框樣式 */
+        input[type="number"]:disabled {
+            background-color: #f2f2f7;
+            color: #8e8e93;
+            border-color: #e5e5ea;
         }
         
         input[type="number"]:focus { border-color: #007aff; outline: none; background-color: #fff; }
@@ -147,8 +163,12 @@
             background-color: #fff9c4;
             border: 1px solid #fbc02d !important;
         }
+        /* 鎖定時移除高亮背景，避免視覺干擾 */
+        input[type="number"]:disabled.variable-highlight {
+            background-color: #f2f2f7;
+            border: 1px solid #e5e5ea !important;
+        }
 
-        /* 摘要面板 */
         .summary-panel {
             background-color: #f0f9ff;
             border: 1px solid #b3e5fc;
@@ -163,7 +183,6 @@
             margin-bottom: 2px;
         }
 
-        /* 收合區塊 */
         details {
             margin-top: 10px;
             border: 1px solid #e5e5ea;
@@ -179,7 +198,6 @@
         }
         .details-content { padding: 10px; font-size: 0.85em; color: #555; }
         
-        /* 結果區 */
         .result-area {
             margin-top: 20px;
             padding: 15px;
@@ -213,7 +231,7 @@
 <body>
     
     <div class="calculator-container">
-        <h1>薪資加班費計算器 (V11.2)</h1>
+        <h1>薪資加班費計算器 (V12.0)</h1>
         
         <div class="notice-group">
             <div class="notice-box privacy">
@@ -224,8 +242,12 @@
             </div>
         </div>
 
-        <!-- 月薪輸入區 -->
-        <h2>💰 月薪結構</h2>
+        <!-- 月薪輸入區 (含鎖定按鈕) -->
+        <div class="section-header">
+            <h2>💰 月薪結構</h2>
+            <!-- V12.0 新增鎖定按鈕 -->
+            <button id="lockBtn" onclick="toggleLock()" class="btn-small btn-lock">🔓 編輯模式</button>
+        </div>
         
         <div class="grid-row">
             <div class="col-full input-wrapper">
@@ -285,7 +307,7 @@
         <!-- 加班時數輸入區 -->
         <div class="section-header">
             <h2>⏱️ 加班時數</h2>
-            <button onclick="clearHours()" class="btn-clear">🗑️ 時數清空</button>
+            <button onclick="clearHours()" class="btn-small btn-clear">🗑️ 時數清空</button>
         </div>
         
         <label style="margin-top:5px; color:#007aff; display:block;">💼 平日加班</label>
@@ -391,15 +413,21 @@
             RATE_134: 4/3, RATE_167: 5/3, RATE_267: 8/3  
         };
 
-        const inputIds = [
-            'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus',
-            'normalOT1', 'normalOT2', 'dayOffOT1', 'dayOffOT2', 'dayOffOT3', 'holidayOT', 'disasterOT'
+        // 薪資結構欄位 (需要被鎖定的)
+        const salaryInputIds = [
+            'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus'
         ];
+
+        // 時數輸入欄位 (不鎖定)
         const hourInputIds = [
             'normalOT1', 'normalOT2', 'dayOffOT1', 'dayOffOT2', 'dayOffOT3', 'holidayOT', 'disasterOT'
         ];
 
-        const STORAGE_KEY = 'salary_calc_v11';
+        const allInputIds = [...salaryInputIds, ...hourInputIds];
+        const STORAGE_KEY = 'salary_calc_v12';
+
+        // 鎖定狀態
+        let isLocked = false;
 
         function calculate() {
             // A. 月薪
@@ -489,10 +517,36 @@
             }
         }
 
+        // V12.0: 鎖定切換功能
+        function toggleLock() {
+            isLocked = !isLocked;
+            updateLockState();
+            saveData(); // 儲存鎖定狀態
+        }
+
+        function updateLockState() {
+            const lockBtn = document.getElementById('lockBtn');
+            if (isLocked) {
+                // 鎖定狀態
+                lockBtn.innerText = "🔒 已鎖定";
+                lockBtn.classList.add("locked");
+                // 禁用所有薪資輸入框
+                salaryInputIds.forEach(id => document.getElementById(id).disabled = true);
+            } else {
+                // 編輯模式
+                lockBtn.innerText = "🔓 編輯模式";
+                lockBtn.classList.remove("locked");
+                // 啟用
+                salaryInputIds.forEach(id => document.getElementById(id).disabled = false);
+            }
+        }
+
         function saveData() {
             const data = {};
-            inputIds.forEach(id => data[id] = document.getElementById(id).value);
+            allInputIds.forEach(id => data[id] = document.getElementById(id).value);
             data['countHolidayInLimit'] = document.getElementById('countHolidayInLimit').checked;
+            // 儲存鎖定狀態
+            data['isLocked'] = isLocked;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
@@ -500,16 +554,22 @@
             const savedData = localStorage.getItem(STORAGE_KEY);
             if (savedData) {
                 const data = JSON.parse(savedData);
-                inputIds.forEach(id => {
+                allInputIds.forEach(id => {
                     if (data[id] !== undefined && data[id] !== "") document.getElementById(id).value = data[id];
                 });
                 if (data['countHolidayInLimit'] !== undefined) {
                     document.getElementById('countHolidayInLimit').checked = data['countHolidayInLimit'];
                 }
+                // 讀取鎖定狀態
+                if (data['isLocked'] !== undefined) {
+                    isLocked = data['isLocked'];
+                }
             }
+            // 初始化鎖定UI
+            updateLockState();
         }
 
-        inputIds.forEach(id => document.getElementById(id).addEventListener('input', calculate));
+        allInputIds.forEach(id => document.getElementById(id).addEventListener('input', calculate));
         document.getElementById('countHolidayInLimit').addEventListener('change', calculate);
 
         window.onload = function() { loadData(); calculate(); };
