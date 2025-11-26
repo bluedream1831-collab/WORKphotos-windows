@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>實領薪資計算器 (V13.0)</title>
+    <title>實領薪資計算器 (V13.1)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -182,11 +182,11 @@
         }
         .details-content { padding: 10px; font-size: 0.85em; color: #555; }
         
-        /* 結果區優化 */
+        /* 結果區 */
         .result-area {
             margin-top: 20px;
             padding: 15px;
-            background: #f1f8e9; /* 改為淡綠色背景代表實領 */
+            background: #f1f8e9;
             border: 1px solid #c8e6c9;
             border-radius: 10px;
             text-align: center;
@@ -194,7 +194,7 @@
         .result-area p {
             font-size: 2.2em;
             font-weight: 800;
-            color: #2e7d32; /* 實領金額用綠色 */
+            color: #2e7d32;
             margin: 5px 0 10px 0;
         }
         
@@ -224,7 +224,7 @@
 <body>
     
     <div class="calculator-container">
-        <h1>實領薪資計算器 (V13.0)</h1>
+        <h1>實領薪資計算器 (V13.1)</h1>
         
         <div class="notice-group">
             <div class="notice-box privacy">
@@ -363,32 +363,28 @@
             </div>
         </div>
 
-        <!-- 新增：扣款項目區 (V13.0) -->
+        <!-- 扣款項目區 (V13.1 改為兩格並排) -->
         <div class="section-header">
             <h2>💸 每月扣款</h2>
         </div>
         <div class="grid-row">
-            <div class="col-third input-wrapper">
-                <label>勞保費</label>
+            <div class="col-half input-wrapper">
+                <label>勞健保費</label>
                 <div class="input-with-unit">
-                    <input type="number" id="laborInsurance" placeholder="0">
+                    <input type="number" id="laborHealthInsurance" placeholder="0">
+                    <span class="unit">元</span>
                 </div>
             </div>
-            <div class="col-third input-wrapper">
-                <label>健保費</label>
-                <div class="input-with-unit">
-                    <input type="number" id="healthInsurance" placeholder="0">
-                </div>
-            </div>
-            <div class="col-third input-wrapper">
+            <div class="col-half input-wrapper">
                 <label>公司福儲</label>
                 <div class="input-with-unit">
                     <input type="number" id="welfareFund" placeholder="0">
+                    <span class="unit">元</span>
                 </div>
             </div>
         </div>
 
-        <!-- 結果顯示 (V13.0 優化) -->
+        <!-- 結果顯示 -->
         <div class="result-area">
             <div class="total-hours-tag">
                 總加班時數：<span id="totalHoursAll" style="color:#007aff; font-weight:bold;">0</span> 小時
@@ -432,19 +428,18 @@
             RATE_134: 4/3, RATE_167: 5/3, RATE_267: 8/3  
         };
 
-        // 薪資結構 & 扣款 (需要被鎖定的)
+        // V13.1 更新：合併勞健保欄位
         const salaryInputIds = [
             'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus',
-            'laborInsurance', 'healthInsurance', 'welfareFund' // V13 加入扣款
+            'laborHealthInsurance', 'welfareFund' 
         ];
 
-        // 時數輸入欄位 (不鎖定)
         const hourInputIds = [
             'normalOT1', 'normalOT2', 'dayOffOT1', 'dayOffOT2', 'dayOffOT3', 'holidayOT', 'disasterOT'
         ];
 
         const allInputIds = [...salaryInputIds, ...hourInputIds];
-        const STORAGE_KEY = 'salary_calc_v13';
+        const STORAGE_KEY = 'salary_calc_v13_1';
 
         let isLocked = false;
 
@@ -491,11 +486,10 @@
             const p_d3 = d3 * r267;
             const totalOTPay = Math.round(p_n1 + p_n2 + p_d1 + p_d2 + p_d3);
 
-            // D. 扣款計算 (V13.0)
-            const labor = parseFloat(document.getElementById('laborInsurance').value) || 0;
-            const health = parseFloat(document.getElementById('healthInsurance').value) || 0;
+            // D. 扣款計算 (V13.1 更新)
+            const laborHealth = parseFloat(document.getElementById('laborHealthInsurance').value) || 0;
             const welfare = parseFloat(document.getElementById('welfareFund').value) || 0;
-            const totalDeduction = Math.round(labor + health + welfare);
+            const totalDeduction = Math.round(laborHealth + welfare);
 
             // E. 總結
             const grossPay = monthlyBase + totalOTPay; // 應發總額
