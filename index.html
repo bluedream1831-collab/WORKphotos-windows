@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>薪資加班費計算器 (V12.0)</title>
+    <title>實領薪資計算器 (V13.0)</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -77,20 +77,11 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-clear {
-            background-color: #ff3b30;
-            color: white;
-        }
-        /* 鎖定按鈕樣式 */
-        .btn-lock {
-            background-color: #e5e5ea;
-            color: #333;
-        }
-        .btn-lock.locked {
-            background-color: #34c759;
-            color: white;
-        }
+        .btn-clear { background-color: #ff3b30; color: white; }
+        .btn-lock { background-color: #e5e5ea; color: #333; }
+        .btn-lock.locked { background-color: #34c759; color: white; }
 
+        /* 格線系統 */
         .grid-row {
             display: flex;
             flex-wrap: wrap;
@@ -102,10 +93,7 @@
         .col-half { flex: 1 1 45%; }
         .col-third { flex: 1 1 30%; }
 
-        .input-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
+        .input-wrapper { display: flex; flex-direction: column; }
 
         label {
             font-size: 0.85em;
@@ -127,10 +115,7 @@
             font-weight: normal;
         }
 
-        .input-with-unit {
-            display: flex;
-            align-items: center;
-        }
+        .input-with-unit { display: flex; align-items: center; }
 
         input[type="number"] {
             width: 100%;
@@ -143,7 +128,6 @@
             color: #333;
         }
         
-        /* 鎖定時的輸入框樣式 */
         input[type="number"]:disabled {
             background-color: #f2f2f7;
             color: #8e8e93;
@@ -163,12 +147,12 @@
             background-color: #fff9c4;
             border: 1px solid #fbc02d !important;
         }
-        /* 鎖定時移除高亮背景，避免視覺干擾 */
         input[type="number"]:disabled.variable-highlight {
             background-color: #f2f2f7;
             border: 1px solid #e5e5ea !important;
         }
 
+        /* 摘要面板 */
         .summary-panel {
             background-color: #f0f9ff;
             border: 1px solid #b3e5fc;
@@ -198,21 +182,30 @@
         }
         .details-content { padding: 10px; font-size: 0.85em; color: #555; }
         
+        /* 結果區優化 */
         .result-area {
             margin-top: 20px;
             padding: 15px;
-            background: #fff8f8;
-            border: 1px solid #ffccd5;
+            background: #f1f8e9; /* 改為淡綠色背景代表實領 */
+            border: 1px solid #c8e6c9;
             border-radius: 10px;
             text-align: center;
         }
         .result-area p {
-            font-size: 2em;
+            font-size: 2.2em;
             font-weight: 800;
-            color: #d32f2f;
+            color: #2e7d32; /* 實領金額用綠色 */
             margin: 5px 0 10px 0;
         }
         
+        .sub-result {
+            font-size: 0.9em;
+            color: #555;
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 10px;
+        }
+
         .total-hours-tag {
             background: #fff;
             padding: 4px 10px;
@@ -221,7 +214,7 @@
             color: #333;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
             display: inline-block;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
         .formula-list { padding-left: 20px; margin: 0; }
@@ -231,7 +224,7 @@
 <body>
     
     <div class="calculator-container">
-        <h1>薪資加班費計算器 (V12.0)</h1>
+        <h1>實領薪資計算器 (V13.0)</h1>
         
         <div class="notice-group">
             <div class="notice-box privacy">
@@ -245,7 +238,6 @@
         <!-- 月薪輸入區 (含鎖定按鈕) -->
         <div class="section-header">
             <h2>💰 月薪結構</h2>
-            <!-- V12.0 新增鎖定按鈕 -->
             <button id="lockBtn" onclick="toggleLock()" class="btn-small btn-lock">🔓 編輯模式</button>
         </div>
         
@@ -295,7 +287,7 @@
 
         <div class="summary-panel">
             <div class="summary-row" style="border-bottom:1px dashed #b3e5fc; padding-bottom:4px; margin-bottom:4px;">
-                <span>月薪總額</span>
+                <span>月薪總額 (未扣款)</span>
                 <span id="displayTotalBase" style="font-weight:bold; color:#0277bd;">0 元</span>
             </div>
             <div class="summary-row">
@@ -371,18 +363,49 @@
             </div>
         </div>
 
-        <!-- 結果顯示 -->
+        <!-- 新增：扣款項目區 (V13.0) -->
+        <div class="section-header">
+            <h2>💸 每月扣款</h2>
+        </div>
+        <div class="grid-row">
+            <div class="col-third input-wrapper">
+                <label>勞保費</label>
+                <div class="input-with-unit">
+                    <input type="number" id="laborInsurance" placeholder="0">
+                </div>
+            </div>
+            <div class="col-third input-wrapper">
+                <label>健保費</label>
+                <div class="input-with-unit">
+                    <input type="number" id="healthInsurance" placeholder="0">
+                </div>
+            </div>
+            <div class="col-third input-wrapper">
+                <label>公司福儲</label>
+                <div class="input-with-unit">
+                    <input type="number" id="welfareFund" placeholder="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果顯示 (V13.0 優化) -->
         <div class="result-area">
             <div class="total-hours-tag">
-                總時數：<span id="totalHoursAll" style="color:#007aff; font-weight:bold;">0</span> 小時
+                總加班時數：<span id="totalHoursAll" style="color:#007aff; font-weight:bold;">0</span> 小時
             </div>
-            <p id="totalIncome">0 元</p>
             
-            <div style="font-size: 0.9em; color:#555;">
-                月薪 <span id="monthlyBasePay">0</span> + 加班 <span id="totalPay">0</span>
+            <p id="netPay">0 元</p> <!-- 實領金額 -->
+            
+            <div class="sub-result">
+                <span>應發總額(含加班)</span>
+                <span id="grossPay" style="color:#007aff;">0</span>
+            </div>
+            <div class="sub-result">
+                <span>扣款總計</span>
+                <span id="totalDeduction" style="color:#d32f2f;">- 0</span>
             </div>
 
-            <div id="limitCheck" style="margin-top:10px; font-size:0.9em;">
+            <div id="limitCheck" style="margin-top:10px; font-size:0.9em; border-top:1px dashed #ccc; padding-top:5px;">
                 <span id="remainingHours" style="color:#34c759;">46小時額度內</span>
             </div>
         </div>
@@ -393,12 +416,8 @@
             <div class="details-content">
                 <strong>1. 基礎時薪 (月薪÷240)</strong>
                 <p style="margin:5px 0 10px 0; font-size:0.9em;">包含本俸、津貼及固定獎金。</p>
-                <strong>2. 倍率說明</strong>
-                <ul class="formula-list" style="margin-top:5px;">
-                    <li>平日前2小時：× 1.34</li>
-                    <li>平日後續 / 休息日3-8小時：× 1.67</li>
-                    <li>休息日9小時起：× 2.67</li>
-                </ul>
+                <strong>2. 實領金額計算</strong>
+                <p style="margin:5px 0 10px 0; font-size:0.9em; color:#d32f2f;">(基本月薪 + 加班費) - (勞健保 + 福儲) = 實領</p>
                 <hr style="margin:10px 0; border:0; border-top:1px dashed #ccc;">
                 <strong>詳細算式：</strong>
                 <div id="breakdownList" style="margin-top:5px; line-height:1.6;">
@@ -413,9 +432,10 @@
             RATE_134: 4/3, RATE_167: 5/3, RATE_267: 8/3  
         };
 
-        // 薪資結構欄位 (需要被鎖定的)
+        // 薪資結構 & 扣款 (需要被鎖定的)
         const salaryInputIds = [
-            'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus'
+            'baseSalary', 'mealAllowance', 'transportAllowance', 'freezerAllowance', 'pickingBonus',
+            'laborInsurance', 'healthInsurance', 'welfareFund' // V13 加入扣款
         ];
 
         // 時數輸入欄位 (不鎖定)
@@ -424,9 +444,8 @@
         ];
 
         const allInputIds = [...salaryInputIds, ...hourInputIds];
-        const STORAGE_KEY = 'salary_calc_v12';
+        const STORAGE_KEY = 'salary_calc_v13';
 
-        // 鎖定狀態
         let isLocked = false;
 
         function calculate() {
@@ -436,15 +455,15 @@
             const transportAllowance = parseFloat(document.getElementById('transportAllowance').value) || 0;
             const freezerAllowance = parseFloat(document.getElementById('freezerAllowance').value) || 0;
             const pickingBonus = parseFloat(document.getElementById('pickingBonus').value) || 0;
-            const monthlyTotal = Math.round(baseSalary + mealAllowance + transportAllowance + freezerAllowance + pickingBonus);
+            const monthlyBase = Math.round(baseSalary + mealAllowance + transportAllowance + freezerAllowance + pickingBonus);
 
             // B. 費率
-            const hourlyRateRaw = monthlyTotal / 240;
+            const hourlyRateRaw = monthlyBase / 240;
             const r134 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_134);
             const r167 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_167);
             const r267 = Math.round(hourlyRateRaw * MULTIPLIERS.RATE_267);
 
-            document.getElementById('displayTotalBase').innerText = `${monthlyTotal.toLocaleString()}`;
+            document.getElementById('displayTotalBase').innerText = `${monthlyBase.toLocaleString()}`;
             document.getElementById('displayHourlyRate').innerText = `${hourlyRateRaw.toFixed(1)}`;
             
             document.getElementById('rateLabel_134').innerText = `$${r134}`;
@@ -453,7 +472,7 @@
             document.getElementById('rateLabel_dayOff2').innerText = `$${r167}`;
             document.getElementById('rateLabel_dayOff3').innerText = `$${r267}`;
 
-            // C. 時數 & 金額
+            // C. 時數 & 加班費
             const n1 = parseFloat(document.getElementById('normalOT1').value) || 0;
             const n2 = parseFloat(document.getElementById('normalOT2').value) || 0;
             const d1 = parseFloat(document.getElementById('dayOffOT1').value) || 0;
@@ -470,22 +489,35 @@
             const p_d1 = d1 * r134;
             const p_d2 = d2 * r167;
             const p_d3 = d3 * r267;
-            
             const totalOTPay = Math.round(p_n1 + p_n2 + p_d1 + p_d2 + p_d3);
-            const totalIncome = monthlyTotal + totalOTPay;
 
-            document.getElementById('monthlyBasePay').innerText = monthlyTotal.toLocaleString();
-            document.getElementById('totalPay').innerText = totalOTPay.toLocaleString();
-            document.getElementById('totalIncome').innerText = `${totalIncome.toLocaleString()} 元`;
+            // D. 扣款計算 (V13.0)
+            const labor = parseFloat(document.getElementById('laborInsurance').value) || 0;
+            const health = parseFloat(document.getElementById('healthInsurance').value) || 0;
+            const welfare = parseFloat(document.getElementById('welfareFund').value) || 0;
+            const totalDeduction = Math.round(labor + health + welfare);
 
+            // E. 總結
+            const grossPay = monthlyBase + totalOTPay; // 應發總額
+            const netPay = grossPay - totalDeduction;  // 實領金額
+
+            document.getElementById('grossPay').innerText = grossPay.toLocaleString();
+            document.getElementById('totalDeduction').innerText = `- ${totalDeduction.toLocaleString()}`;
+            document.getElementById('netPay').innerText = `${netPay.toLocaleString()} 元`;
+
+            // 詳細算式
             let breakdownHtml = '';
             if(n1>0) breakdownHtml += `平日前2小時: ${n1}×$${r134} = $${p_n1}<br>`;
             if(n2>0) breakdownHtml += `平日後續: ${n2}×$${r167} = $${p_n2}<br>`;
             if(d1>0) breakdownHtml += `休息日前2小時: ${d1}×$${r134} = $${p_d1}<br>`;
             if(d2>0) breakdownHtml += `休息日3-8小時: ${d2}×$${r167} = $${p_d2}<br>`;
             if(d3>0) breakdownHtml += `休息日9小時起: ${d3}×$${r267} = $${p_d3}<br>`;
-            if(totalOTPay===0) breakdownHtml = "尚未輸入加班時數";
-            else breakdownHtml += `<strong>總計: $${totalOTPay.toLocaleString()}</strong>`;
+            
+            breakdownHtml += `<hr style="margin:5px 0; border:0; border-top:1px dashed #ccc;">`;
+            breakdownHtml += `月薪: ${monthlyBase.toLocaleString()}<br>`;
+            breakdownHtml += `加班費: ${totalOTPay.toLocaleString()}<br>`;
+            breakdownHtml += `扣款: -${totalDeduction.toLocaleString()}<br>`;
+            breakdownHtml += `<strong>實領: $${netPay.toLocaleString()}</strong>`;
             
             document.getElementById('breakdownList').innerHTML = breakdownHtml;
 
@@ -517,26 +549,21 @@
             }
         }
 
-        // V12.0: 鎖定切換功能
         function toggleLock() {
             isLocked = !isLocked;
             updateLockState();
-            saveData(); // 儲存鎖定狀態
+            saveData();
         }
 
         function updateLockState() {
             const lockBtn = document.getElementById('lockBtn');
             if (isLocked) {
-                // 鎖定狀態
                 lockBtn.innerText = "🔒 已鎖定";
                 lockBtn.classList.add("locked");
-                // 禁用所有薪資輸入框
                 salaryInputIds.forEach(id => document.getElementById(id).disabled = true);
             } else {
-                // 編輯模式
                 lockBtn.innerText = "🔓 編輯模式";
                 lockBtn.classList.remove("locked");
-                // 啟用
                 salaryInputIds.forEach(id => document.getElementById(id).disabled = false);
             }
         }
@@ -545,7 +572,6 @@
             const data = {};
             allInputIds.forEach(id => data[id] = document.getElementById(id).value);
             data['countHolidayInLimit'] = document.getElementById('countHolidayInLimit').checked;
-            // 儲存鎖定狀態
             data['isLocked'] = isLocked;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
@@ -560,12 +586,10 @@
                 if (data['countHolidayInLimit'] !== undefined) {
                     document.getElementById('countHolidayInLimit').checked = data['countHolidayInLimit'];
                 }
-                // 讀取鎖定狀態
                 if (data['isLocked'] !== undefined) {
                     isLocked = data['isLocked'];
                 }
             }
-            // 初始化鎖定UI
             updateLockState();
         }
 
